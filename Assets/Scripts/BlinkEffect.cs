@@ -1,41 +1,21 @@
+// BlinkEffect.cs
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using UnityEngine.Playables;
 
 public class BlinkEffect : MonoBehaviour
 {
-    public Image fadeImage; // Ссылка на ваш Image
-    public float fadeDuration = 0.5f; // Длительность затухания
-    public bool CloseEyes;
-    
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeDuration = 0.5f;
+    public bool CloseEyes { get; set; }
 
-    void Start()
-    {
-        // Начальное состояние
-        fadeImage.color = new Color(0, 0, 0, 0); // Прозрачный
-    }
+    void Start() => fadeImage.color = new Color(0, 0, 0, 0);
 
-    public void Blink()
-    {
-        StartCoroutine(BlinkCoroutine());
-    }
+    public void Blink() => StartCoroutine(BlinkCoroutine());
 
     private IEnumerator BlinkCoroutine()
     {
-        if (CloseEyes)
-        {
-            yield return FadeToColor(new Color(0, 0, 0, 1));
-
-        }
-        // Затухание к черному
-        else
-        {
-            yield return FadeToColor(new Color(0, 0, 0, 0));
-            
-        }
-        // Затухание обратно к прозрачному
-       
+        yield return FadeToColor(new Color(0, 0, 0, CloseEyes ? 1 : 0));
     }
 
     private IEnumerator FadeToColor(Color targetColor)
@@ -50,13 +30,8 @@ public class BlinkEffect : MonoBehaviour
             yield return null;
         }
 
-        fadeImage.color = targetColor; // Убедитесь, что цвет установлен в конечное значение
+        fadeImage.color = targetColor;
     }
-    void Update()
-    {
-        
-        
-            GetComponent<BlinkEffect>().Blink();
-        
-    }
+
+    void Update() => Blink();
 }

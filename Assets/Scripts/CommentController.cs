@@ -1,25 +1,21 @@
-using UnityEngine;
-using UnityEngine.UI; // Для использования UI
-using TMPro; // Если используете TextMeshPro
+// CommentController.cs
 using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class CommentController : MonoBehaviour
 {
-    public Text commentText; // Для обычного текста
-    // public TextMeshProUGUI commentText; // Для TextMeshPro
-    public float displayDuration = 2f; // Время отображения комментария
-    private bool isDisplaying = false; // Флаг для отслеживания состояния отображения
+    [SerializeField] private Text commentText;
+    [SerializeField] private float displayDuration = 2f;
 
-    public bool IsDisplaying => isDisplaying; // Свойство для доступа к флагу
+    private bool isDisplaying = false;
+    public bool IsDisplaying => isDisplaying;
 
-    void Start()
-    {
-        commentText.gameObject.SetActive(false); // Скрыть текст в начале
-    }
+    void Start() => commentText.gameObject.SetActive(false);
 
     public void ShowComment(string comment)
     {
-        if (!isDisplaying) // Проверяем, отображается ли текст в данный момент
+        if (!isDisplaying)
         {
             StartCoroutine(DisplayComment(comment));
         }
@@ -27,13 +23,13 @@ public class CommentController : MonoBehaviour
 
     private IEnumerator DisplayComment(string comment)
     {
-        isDisplaying = true; // Устанавливаем флаг отображения
-        commentText.text = comment; // Установить текст комментария
-        commentText.gameObject.SetActive(true); // Показать текст
-        yield return new WaitForSeconds(displayDuration); // Ждать заданное время
-        commentText.gameObject.SetActive(false); // Скрыть текст
-        isDisplaying = false; // Сбрасываем флаг отображения
+        isDisplaying = true;
+        commentText.text = comment;
+        commentText.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(displayDuration);
+
+        commentText.gameObject.SetActive(false);
+        isDisplaying = false;
     }
 }
-
-

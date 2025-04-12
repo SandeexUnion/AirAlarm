@@ -1,21 +1,16 @@
+// TriggerMessage.cs
 using UnityEngine;
 
 public class TriggerMessage : MonoBehaviour
 {
-    public string message; // Сообщение, которое будет показано при соприкосновении
-    public CommentController commentController; // Ссылка на CommentController
-
-    void Start()
-    {
-        // Найти объект CommentController в сцене
-        
-    }
+    [SerializeField] private string message;
+    [SerializeField] private CommentController commentController;
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) // Проверяем, что триггер активирован игроком
+        if (other.CompareTag("Player"))
         {
-            commentController.ShowComment(message); // Показываем сообщение
+            commentController.ShowComment(message);
             Destroy(gameObject);
         }
     }

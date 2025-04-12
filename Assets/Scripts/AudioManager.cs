@@ -1,63 +1,56 @@
-
+// AudioManager.cs
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    public AudioClip[] audioClips; // Массив аудиотреков 
-    public AudioSource audioSource;
+    [SerializeField] private AudioClip[] audioClips;
+    [SerializeField] private CommentController commentController;
+    [SerializeField] private BlinkEffect blinkEffect;
+    [SerializeField] private GameObject triggers1;
+    [SerializeField] private GameObject triggers2;
+    [SerializeField] private GameObject bed;
+
+    private AudioSource audioSource;
     private int currentTrackIndex = 0;
-    public CommentController commentController;
-    public GameObject bed;
-    public BlinkEffect blinkEffect;
-    public GameObject triggers1;
-    public GameObject triggers2;
-    private bool hasFinished = false; // Переменная для отслеживания вызова метода
+    private bool hasFinished = false;
+
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         PlayNextTrack();
     }
 
-    
-
     void Update()
     {
-        Debug.Log(audioClips[currentTrackIndex].name);
-        // Проверяем, закончилась ли игра
         if (!audioSource.isPlaying && !hasFinished)
         {
-            hasFinished = true; // Устанавливаем флаг, что метод уже вызван
-            OnAudioFinished(); // Вызываем метод
+            hasFinished = true;
+            OnAudioFinished();
         }
         else if (audioSource.isPlaying)
         {
             if (audioSource.clip.name == "Сирена2.")
             {
-                triggers1.gameObject.SetActive(false);
-                triggers2.gameObject.SetActive(true);
+                triggers1.SetActive(false);
+                triggers2.SetActive(true);
             }
-            hasFinished = false; // Сбрасываем флаг, если музыка снова играет
+            hasFinished = false;
         }
     }
 
     void OnAudioFinished()
     {
-        // Переход к следующему треку 
         currentTrackIndex++;
-        
+
         if (audioSource.clip.name == "смерть")
         {
             blinkEffect.CloseEyes = true;
-
         }
         else
         {
             commentController.ShowComment("Думаю уже можно выходить.");
-            
             bed.tag = "Interact";
-
         }
-
     }
 
     public void PlayNextTrack()
