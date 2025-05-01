@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.Audio;
 
 public class MenuController : MonoBehaviour
 {
@@ -12,6 +13,11 @@ public class MenuController : MonoBehaviour
     [SerializeField] private GameObject topicSelectPanel;
     [SerializeField] private GameObject levelSelectPanel;
     [SerializeField] private GameObject loadingPanel;
+
+    [Header("Настройки")]
+    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private Toggle fullscreenToggle;
+    [SerializeField] private AudioMixer audioMixer; // Создайте через Assets/Create/AudioMixer
 
     // Элементы выбора уровня
     [Header("Выбор уровня")]
@@ -62,6 +68,13 @@ public class MenuController : MonoBehaviour
     {
         CalculateGridLayout();
         ShowMainMenu();
+
+        // Загрузка сохраненных настроек
+        LoadSettings();
+
+        // Настройка обработчиков
+        masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
+        fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
     private void Update()
     {
@@ -173,7 +186,7 @@ public class MenuController : MonoBehaviour
     }
     void CalculateGridLayout()
     {
-        int levelsCount = gameTopics[currentSelectedTopic].LevelScenes.Count;
+        int levelsCount = gameTopics[currentSelectedTopic].LevelScenes.Count;   
         var grid = levelButtonsContainer.GetComponent<GridLayoutGroup>();
 
         if (levelsCount <= 3)
@@ -225,6 +238,33 @@ public class MenuController : MonoBehaviour
         levelSelectPanel.SetActive(false);
         topicSelectPanel.SetActive(true);
     }
+
+    public void SetMasterVolume(float volume)
+    {
+        // Логарифмическая шкала (0.0001 до 1 преобразуется в -80dB до 0dB)
+        audioMixer.SetFloat("MasterVolume", Mathf.Log10(volume) * 20);
+        PlayerPrefs.SetFloat("MasterVolume", volume);
+    }
+
+    public void SetFullscreen(bool isFullscreen)
+    {
+        Screen.fullScreen = isFullscreen;
+        PlayerPrefs.SetInt("FullscreenMode", isFullscreen ? 1 : 0);
+    }
+
+    private void LoadSettings()
+    {
+        // Громкость (значение по умолчанию 0.8)
+        float savedVolume = PlayerPrefs.GetFloat("MasterVolume", 0.8f);
+        masterVolumeSlider.value = savedVolume;
+        SetMasterVolume(savedVolume);
+
+        // Полноэкранный режим (по умолчанию true)
+        bool fullscreen = PlayerPrefs.GetInt("FullscreenMode", 1) == 1;
+        fullscreenToggle.isOn = fullscreen;
+        SetFullscreen(fullscreen);
+    }
+
 
     #endregion
 
