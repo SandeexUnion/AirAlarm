@@ -11,7 +11,7 @@ public class Drag : MonoBehaviour
     public string ThrowButton = "Throw";
     public string UseButton = "Use";
     public float reducedMouseSensitivity = 0.1f;
-    public GameObject bed;
+    
 
     private Interaction currentInteraction;
     private GameObject objectHeld;
@@ -71,6 +71,8 @@ public class Drag : MonoBehaviour
             if (hit.collider.gameObject.name == "Old_wood_bed" && hit.collider.CompareTag(tags.interactTag))
             {
                 HandleBedInteraction(hit);
+                bf.CloseEyes = true;
+                bf.Blink();
                 return;
             }
 
@@ -115,7 +117,7 @@ public class Drag : MonoBehaviour
 
     private IEnumerator WaitAndExecute()
     {
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(4f);
         if (bf != null) bf.CloseEyes = false;
         if (timeline != null) timeline.Play();
         if (GetComponent<AudioManager>() != null)

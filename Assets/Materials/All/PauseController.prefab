@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5169527775398097776
+--- !u!1 &6453274809399591867
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,41 +8,39 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7145915386714246767}
-  - component: {fileID: 6187276087655850729}
+  - component: {fileID: 8457245884223165952}
+  - component: {fileID: 8032805504830731459}
   m_Layer: 0
-  m_Name: Blink
+  m_Name: PauseController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7145915386714246767
+--- !u!4 &8457245884223165952
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5169527775398097776}
+  m_GameObject: {fileID: 6453274809399591867}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.00061247026, y: 0.7040517, z: -0.0017991858, w: -0.7101462}
-  m_LocalPosition: {x: 1.8637723, y: -0.42333424, z: -6.402141}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -203.7146, y: 180.6289, z: 166.25012}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0.195, y: 270.49402, z: 0.097}
---- !u!114 &6187276087655850729
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8032805504830731459
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5169527775398097776}
+  m_GameObject: {fileID: 6453274809399591867}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 129332a72c9f06e47a96436e18dc9c77, type: 3}
+  m_Script: {fileID: 11500000, guid: a9dcfff2bb2f66a4b9f4ed4f0412a032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeImage: {fileID: 0}
-  fadeDuration: 4

@@ -8,7 +8,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private BlinkEffect blinkEffect;
     [SerializeField] private GameObject triggers1;
     [SerializeField] private GameObject triggers2;
-    [SerializeField] private GameObject bed;
+    
 
     private AudioSource audioSource;
     private int currentTrackIndex = 0;
@@ -49,7 +49,7 @@ public class AudioManager : MonoBehaviour
         else
         {
             commentController.ShowComment("Думаю уже можно выходить.");
-            bed.tag = "Interact";
+            
         }
     }
 

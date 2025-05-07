@@ -1,4 +1,3 @@
-// BlinkEffect.cs
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,14 +7,36 @@ public class BlinkEffect : MonoBehaviour
     [SerializeField] private Image fadeImage;
     [SerializeField] private float fadeDuration = 0.5f;
     public bool CloseEyes { get; set; }
+    private bool isBlinking = false;
 
-    void Start() => fadeImage.color = new Color(0, 0, 0, 0);
+    void Start()
+    {
+        fadeImage.color = new Color(0, 0, 0, 0);
+    }
 
-    public void Blink() => StartCoroutine(BlinkCoroutine());
+    public void Blink()
+    {
+        if (!isBlinking)
+        {
+            StartCoroutine(BlinkCoroutine());
+        }
+    }
 
     private IEnumerator BlinkCoroutine()
     {
+        isBlinking = true;
+        
+        // Fade to black
         yield return FadeToColor(new Color(0, 0, 0, CloseEyes ? 1 : 0));
+        
+        // Fade back to transparent (optional)
+        if (CloseEyes)
+        {
+            yield return new WaitForSeconds(0.1f); // Optional delay
+            yield return FadeToColor(new Color(0, 0, 0, 0));
+        }
+        
+        isBlinking = false;
     }
 
     private IEnumerator FadeToColor(Color targetColor)
@@ -33,5 +54,5 @@ public class BlinkEffect : MonoBehaviour
         fadeImage.color = targetColor;
     }
 
-    void Update() => Blink();
+    // Убрали Update - теперь Blink() нужно вызывать вручную когда нужно
 }
