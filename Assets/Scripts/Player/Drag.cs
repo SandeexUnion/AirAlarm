@@ -11,13 +11,14 @@ public class Drag : MonoBehaviour
     public string ThrowButton = "Throw";
     public string UseButton = "Use";
     public float reducedMouseSensitivity = 0.1f;
-    
+    public CrosshairGUI crosshairGUI; 
 
+    private Inventory inventorySystem;
     private Interaction currentInteraction;
     private GameObject objectHeld;
     private bool isObjectHeld;
     private bool tryPickupObject;
-    private float maxDistanceGrab = 5f;
+    private float maxDistanceGrab = 1.5f;
     [System.Serializable]
     public class InteractionTags
     {
@@ -28,7 +29,11 @@ public class Drag : MonoBehaviour
 
     public InteractionTags tags = new InteractionTags();
 
-    void FixedUpdate()
+    private void Start()
+    {
+        inventorySystem = GetComponent<Inventory>();
+    }
+    private void HandleInput()
     {
         if (Input.GetButton(GrabButton))
         {
@@ -52,12 +57,15 @@ public class Drag : MonoBehaviour
             ThrowObject();
         }
 
-        if (Input.GetButton(UseButton))
+        if (Input.GetButtonDown(UseButton) && isObjectHeld)
         {
-            TryPickObject();
-            tryPickupObject = false;
+
             Use();
         }
+    }
+    void Update()
+    {
+        HandleInput();
     }
 
     private void TryPickObject()
@@ -108,8 +116,7 @@ public class Drag : MonoBehaviour
 
     private void HandleBedInteraction(RaycastHit hit)
     {
-        CrosshairGUI.m_DefaultReticle = true;
-        CrosshairGUI.m_UseReticle = false;
+        crosshairGUI.isLookingAtInteractable = true;
         if (bf != null) bf.CloseEyes = true;
         hit.collider.gameObject.tag = "Untagged";
         StartCoroutine(WaitAndExecute());
@@ -163,11 +170,22 @@ public class Drag : MonoBehaviour
 
     private void Use()
     {
-        if (!isObjectHeld) return;
+        // Убираем лишние вызовы TryPickObject
+        if (!isObjectHeld || objectHeld == null) return;
 
-        isObjectHeld = false;
-        objectHeld.SendMessage("UseObject", SendMessageOptions.DontRequireReceiver);
-        objectHeld = null;
-        currentInteraction = null;
+        // Проверяем, можно ли добавить в инвентарь
+        if (objectHeld.CompareTag(tags.itemTag) || objectHeld.CompareTag(tags.interactTag))
+        {
+            inventorySystem.AddToInventoryNewItem(objectHeld);
+            isObjectHeld = false;
+
+            // Вызываем методы объекта перед уничтожением
+            objectHeld.SendMessage("UseObject", SendMessageOptions.DontRequireReceiver);
+            Destroy(objectHeld);
+
+            objectHeld = null;
+            currentInteraction = null;
+            Debug.Log("Предмет добавлен в инвентарь");
+        }
     }
 }

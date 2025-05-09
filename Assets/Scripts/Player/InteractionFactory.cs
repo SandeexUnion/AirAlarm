@@ -28,19 +28,19 @@ public abstract class Interaction
 
 public class ObjectInteraction : Interaction
 {
-    public override float PickupRange => 1f;
+    public override float PickupRange => 1.5f;
     public override float ThrowStrength => 10f;
     public override float HoldDistance => 0.5f;
-    public override float MaxGrabDistance => 1f;
+    public override float MaxGrabDistance => 1.5f;
     public override bool FreezeRotation => true;
 }
 
 public class ItemInteraction : Interaction
 {
-    public override float PickupRange => 2f;
+    public override float PickupRange => 1.5f;
     public override float ThrowStrength => 45f;
     public override float HoldDistance => 1f;
-    public override float MaxGrabDistance => 2.5f;
+    public override float MaxGrabDistance => 1.5f;
     public override bool FreezeRotation => true;
 }
 
@@ -49,7 +49,7 @@ public class DoorInteraction : Interaction
     public override float PickupRange => 1.5f;
     public override float ThrowStrength => 5f;
     public override float HoldDistance => 1.2f;
-    public override float MaxGrabDistance => 2f;
+    public override float MaxGrabDistance => 1.5f;
     public override bool FreezeRotation => false;
 
     public override void OnGrab(Rigidbody rb)
