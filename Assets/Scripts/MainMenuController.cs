@@ -12,12 +12,13 @@ public class MenuController : MonoBehaviour
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject topicSelectPanel;
     [SerializeField] private GameObject levelSelectPanel;
-    [SerializeField] private GameObject loadingPanel;
+    [SerializeField] private GameObject loadingPanel; 
+    [SerializeField] private GameObject settingsPanel;
 
     [Header("Настройки")]
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Toggle fullscreenToggle;
-    [SerializeField] private AudioMixer audioMixer; // Создайте через Assets/Create/AudioMixer
+    [SerializeField] private AudioMixer audioMixer; 
 
     // Элементы выбора уровня
     [Header("Выбор уровня")]
@@ -55,9 +56,9 @@ public class MenuController : MonoBehaviour
             )
         },
         {
-            "Наводнения",
+            "Туториал",
             new TopicData(
-                new List<string>{"FloodLevel1", "FloodLevel2", "FloodLevel3"},
+                new List<string>{ "TutorialLevel1", "TutorialLevel2", "TutorialLevel"},
                 "Правила поведения при наводнении",
                 new Color(0.2f, 0.4f, 0.8f) // Синий
             )
@@ -95,6 +96,12 @@ public class MenuController : MonoBehaviour
     {
         mainMenuPanel.SetActive(false);
         topicSelectPanel.SetActive(true);
+    }
+
+    public void OnSettingsButtonClicked()
+    {
+        mainMenuPanel.SetActive(false);
+        settingsPanel.SetActive(true);
     }
 
     public void OnExitButtonClicked()
@@ -215,7 +222,7 @@ public class MenuController : MonoBehaviour
             yield return new WaitForSeconds(transitionDuration);
         }
 
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName); 
 
         while (!asyncLoad.isDone)
         {
@@ -241,9 +248,20 @@ public class MenuController : MonoBehaviour
 
     public void SetMasterVolume(float volume)
     {
-        // Логарифмическая шкала (0.0001 до 1 преобразуется в -80dB до 0dB)
-        audioMixer.SetFloat("MasterVolume", Mathf.Log10(volume) * 20);
-        PlayerPrefs.SetFloat("MasterVolume", volume);
+        float volumeValue = masterVolumeSlider.value;
+
+        // Проверка на 0 перед вычислением логарифма
+        if (volumeValue > 0)
+        {
+            audioMixer.SetFloat("MasterVolume", Mathf.Log10(volumeValue) * 20);
+        }
+        else
+        {
+            audioMixer.SetFloat("MasterVolume", -80); // Установка минимального значения громкости
+        }
+
+        PlayerPrefs.SetFloat("MasterVolume", volumeValue);
+
     }
 
     public void SetFullscreen(bool isFullscreen)
