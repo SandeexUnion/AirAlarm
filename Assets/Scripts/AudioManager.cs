@@ -1,4 +1,3 @@
-// AudioManager.cs
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -8,7 +7,6 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private BlinkEffect blinkEffect;
     [SerializeField] private GameObject triggers1;
     [SerializeField] private GameObject triggers2;
-    
 
     private AudioSource audioSource;
     private int currentTrackIndex = 0;
@@ -49,7 +47,6 @@ public class AudioManager : MonoBehaviour
         else
         {
             commentController.ShowComment("Думаю уже можно выходить.");
-            
         }
     }
 

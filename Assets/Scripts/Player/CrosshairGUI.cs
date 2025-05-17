@@ -27,10 +27,6 @@ public class CrosshairGUI : MonoBehaviour
         {
             isLookingAtInteractable = false;
         }
-
-        // Настройки курсора
-        Cursor.visible = showCursor;
-        Cursor.lockState = showCursor ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     void OnGUI()

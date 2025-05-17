@@ -12,13 +12,13 @@ public class MenuController : MonoBehaviour
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject topicSelectPanel;
     [SerializeField] private GameObject levelSelectPanel;
-    [SerializeField] private GameObject loadingPanel; 
+    [SerializeField] private GameObject loadingPanel;
     [SerializeField] private GameObject settingsPanel;
 
     [Header("Настройки")]
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Toggle fullscreenToggle;
-    [SerializeField] private AudioMixer audioMixer; 
+    [SerializeField] private AudioMixer audioMixer;
 
     // Элементы выбора уровня
     [Header("Выбор уровня")]
@@ -32,6 +32,7 @@ public class MenuController : MonoBehaviour
     [Header("Визуальные эффекты")]
     [SerializeField] private Animator transitionAnimator;
     [SerializeField] private float transitionDuration = 0.5f;
+    public int a;
 
     // Текущая выбранная тема
     private string currentSelectedTopic;
@@ -77,9 +78,10 @@ public class MenuController : MonoBehaviour
         masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
+
     private void Update()
     {
-        
+
     }
 
     #region Основная навигация
@@ -191,9 +193,10 @@ public class MenuController : MonoBehaviour
         // Принудительное обновление layout
         LayoutRebuilder.ForceRebuildLayoutImmediate(levelButtonsContainer.GetComponent<RectTransform>());
     }
+
     void CalculateGridLayout()
     {
-        int levelsCount = gameTopics[currentSelectedTopic].LevelScenes.Count;   
+        int levelsCount = gameTopics[currentSelectedTopic].LevelScenes.Count;
         var grid = levelButtonsContainer.GetComponent<GridLayoutGroup>();
 
         if (levelsCount <= 3)
@@ -222,7 +225,7 @@ public class MenuController : MonoBehaviour
             yield return new WaitForSeconds(transitionDuration);
         }
 
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName); 
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
 
         while (!asyncLoad.isDone)
         {
@@ -237,6 +240,7 @@ public class MenuController : MonoBehaviour
     public void OnBackFromTopicSelect()
     {
         topicSelectPanel.SetActive(false);
+        settingsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
 
@@ -261,7 +265,6 @@ public class MenuController : MonoBehaviour
         }
 
         PlayerPrefs.SetFloat("MasterVolume", volumeValue);
-
     }
 
     public void SetFullscreen(bool isFullscreen)
@@ -282,7 +285,6 @@ public class MenuController : MonoBehaviour
         fullscreenToggle.isOn = fullscreen;
         SetFullscreen(fullscreen);
     }
-
 
     #endregion
 

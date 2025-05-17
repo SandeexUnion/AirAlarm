@@ -25,17 +25,15 @@ public class BlinkEffect : MonoBehaviour
     private IEnumerator BlinkCoroutine()
     {
         isBlinking = true;
-        
-        // Fade to black
+
         yield return FadeToColor(new Color(0, 0, 0, CloseEyes ? 1 : 0));
-        
-        // Fade back to transparent (optional)
+
         if (CloseEyes)
         {
-            yield return new WaitForSeconds(0.1f); // Optional delay
+            yield return new WaitForSeconds(0.1f);
             yield return FadeToColor(new Color(0, 0, 0, 0));
         }
-        
+
         isBlinking = false;
     }
 
@@ -53,6 +51,4 @@ public class BlinkEffect : MonoBehaviour
 
         fadeImage.color = targetColor;
     }
-
-    // Убрали Update - теперь Blink() нужно вызывать вручную когда нужно
 }

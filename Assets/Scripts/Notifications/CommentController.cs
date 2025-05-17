@@ -1,4 +1,3 @@
-// CommentController.cs
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,16 +19,14 @@ public class CommentController : MonoBehaviour
         commentText.gameObject.SetActive(false);
         pauseController = Object.FindFirstObjectByType<PauseController>();
     }
-        
+
     private void Update()
     {
-        if(isDisplaying && Input.GetKeyUp(KeyCode.Space))
+        if (isDisplaying && Input.GetKeyUp(KeyCode.Space))
         {
             pauseController.Resume();
             isDisplaying = false;
             notificationMoveToCentrController.HideNotification();
-
-
         }
     }
 
@@ -46,16 +43,11 @@ public class CommentController : MonoBehaviour
         isDisplaying = true;
         commentText.text = comment;
         commentText.gameObject.SetActive(true);
-
-        
-
-        
     }
+
     private void DisableComment(string comment)
     {
         commentText.gameObject.SetActive(false);
         isDisplaying = false;
     }
-
-    
 }

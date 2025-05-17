@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic; // Добавляем для использования List
+using System.Collections.Generic;
 
 public class Inventory : MonoBehaviour
 {
@@ -65,7 +65,7 @@ public class Inventory : MonoBehaviour
             {
                 return item.transform.parent.gameObject;
             }
-            return item; 
+            return item;
         }
         return item;
     }

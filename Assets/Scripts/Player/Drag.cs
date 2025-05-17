@@ -11,7 +11,7 @@ public class Drag : MonoBehaviour
     public string ThrowButton = "Throw";
     public string UseButton = "Use";
     public float reducedMouseSensitivity = 0.1f;
-    public CrosshairGUI crosshairGUI; 
+    public CrosshairGUI crosshairGUI;
 
     private Inventory inventorySystem;
     private Interaction currentInteraction;
@@ -19,6 +19,7 @@ public class Drag : MonoBehaviour
     private bool isObjectHeld;
     private bool tryPickupObject;
     private float maxDistanceGrab = 1.5f;
+
     [System.Serializable]
     public class InteractionTags
     {
@@ -33,6 +34,7 @@ public class Drag : MonoBehaviour
     {
         inventorySystem = GetComponent<Inventory>();
     }
+
     private void HandleInput()
     {
         if (Input.GetButton(GrabButton))
@@ -59,10 +61,10 @@ public class Drag : MonoBehaviour
 
         if (Input.GetButtonDown(UseButton) && isObjectHeld)
         {
-
             Use();
         }
     }
+
     void Update()
     {
         HandleInput();
@@ -189,3 +191,4 @@ public class Drag : MonoBehaviour
         }
     }
 }
+
