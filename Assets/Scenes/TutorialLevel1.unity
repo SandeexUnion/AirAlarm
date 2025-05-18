@@ -307,10 +307,18 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2407120912033752049, guid: c022d849bc98fd0478ec23378388609d, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: 24300002, guid: 4639f980f9b5ca84ba008cee3ed401e0, type: 2}
     - target: {fileID: 3000953706517266163, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: m_Name
       value: Player 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4944184634761115153, guid: c022d849bc98fd0478ec23378388609d, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: 24300002, guid: 4639f980f9b5ca84ba008cee3ed401e0, type: 2}
     - target: {fileID: 5767291195520651901, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: pauseMenu
       value: 
@@ -1645,6 +1653,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0078c569a352e4419d13d8c3eb2e18c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  basicObjectNames:
+  - Cube
+  - Sphere
+  - Capsule
+  - Cylinder
+  - Plane
+  - Quad
+  - Terrain
+  - Wind Zone
+  - 3D Text
   inventoryItems: []
 --- !u!114 &1812404445 stripped
 MonoBehaviour:

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Audio;
+using Unity.VisualScripting;
 
 /// <summary>
 /// Контроллер главного меню, управляющий навигацией между панелями,
@@ -18,6 +19,7 @@ public class MenuController : MonoBehaviour
     [SerializeField] private GameObject levelSelectPanel;
     [SerializeField] private GameObject loadingPanel;
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject creditsPanel;
 
     // Элементы настроек
     [Header("Настройки")]
@@ -65,7 +67,7 @@ public class MenuController : MonoBehaviour
             "Туториал",
             new TopicData(
                 new List<string>{ "TutorialLevel1", "TutorialLevel2", "TutorialLevel"},
-                "Правила поведения при наводнении",
+                "Обучение",
                 new Color(0.2f, 0.4f, 0.8f) // Синий
             )
         }
@@ -149,9 +151,22 @@ public class MenuController : MonoBehaviour
     /// <param name="topicName">Название выбранной темы</param>
     public void OnTopicSelected(string topicName)
     {
+        // Проверяем, существует ли тема в словаре
         if (!gameTopics.ContainsKey(topicName)) return;
 
+        // Устанавливаем текущую выбранную тему
         currentSelectedTopic = topicName;
+
+        // Получаем данные выбранной темы
+        TopicData selectedTopic = gameTopics[topicName];
+
+        // Устанавливаем заголовок темы
+        topicTitleText.text = topicName;
+
+        // Устанавливаем описание темы (из поля Description)
+        levelDescriptionText.text = selectedTopic.Description;
+
+        // Запускаем переход к выбору уровня
         StartCoroutine(TransitionToLevelSelection());
     }
 
@@ -230,17 +245,26 @@ public class MenuController : MonoBehaviour
     /// </summary>
     private void CreateLevelButtons()
     {
-        var levels = gameTopics[currentSelectedTopic].LevelScenes;
+        // Получаем данные текущей выбранной темы
+        TopicData currentTopic = gameTopics[currentSelectedTopic];
+
+        // Получаем список сцен уровней для этой темы
+        var levels = currentTopic.LevelScenes;
+
         for (int i = 0; i < levels.Count; i++)
         {
+            // Создаем кнопку уровня
             Button levelButton = Instantiate(levelButtonPrefab, levelButtonsContainer);
-            levelButton.GetComponentInChildren<Text>().text = $"Уровень {i + 1}";
 
-            // Настройка цветов кнопки
+            // Устанавливаем текст кнопки с названием темы и номером уровня
+            levelButton.GetComponentInChildren<Text>().text = $"{currentSelectedTopic} - Уровень {i + 1}";
+
+            // Настройка цветов кнопки (используем цвет из данных темы)
             var colors = levelButton.colors;
-            colors.normalColor = new Color(0.2f, 0.4f, 0.8f);
+            colors.normalColor = currentTopic.ThemeColor; // Используем цвет из TopicData
             levelButton.colors = colors;
 
+            // Сохраняем индекс уровня в замыкании
             int levelIndex = i;
             levelButton.onClick.AddListener(() => OnLevelSelected(levelIndex));
         }
@@ -307,6 +331,7 @@ public class MenuController : MonoBehaviour
     {
         topicSelectPanel.SetActive(false);
         settingsPanel.SetActive(false);
+        creditsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
 
@@ -368,6 +393,14 @@ public class MenuController : MonoBehaviour
         bool fullscreen = PlayerPrefs.GetInt("FullscreenMode", 1) == 1;
         fullscreenToggle.isOn = fullscreen;
         SetFullscreen(fullscreen);
+    }
+
+    public void OnCreditsButtonClicked()
+    {
+
+       topicSelectPanel.SetActive(false);
+       creditsPanel.SetActive(true);
+    
     }
 
     #endregion
