@@ -5,6 +5,10 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Audio;
 
+/// <summary>
+/// Контроллер главного меню, управляющий навигацией между панелями,
+/// настройками и загрузкой уровней.
+/// </summary>
 public class MenuController : MonoBehaviour
 {
     // Основные UI элементы
@@ -15,6 +19,7 @@ public class MenuController : MonoBehaviour
     [SerializeField] private GameObject loadingPanel;
     [SerializeField] private GameObject settingsPanel;
 
+    // Элементы настроек
     [Header("Настройки")]
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Toggle fullscreenToggle;
@@ -28,11 +33,11 @@ public class MenuController : MonoBehaviour
     [SerializeField] private Text levelDescriptionText;
     [SerializeField] private Image topicBackgroundImage;
 
-    // Визуальные эффекты
+    // Визуальные эффекты и анимации
     [Header("Визуальные эффекты")]
     [SerializeField] private Animator transitionAnimator;
     [SerializeField] private float transitionDuration = 0.5f;
-    public int a;
+    public int a; // Временная переменная для тестирования
 
     // Текущая выбранная тема
     private string currentSelectedTopic;
@@ -66,6 +71,9 @@ public class MenuController : MonoBehaviour
         }
     };
 
+    /// <summary>
+    /// Инициализация при старте сцены
+    /// </summary>
     private void Start()
     {
         CalculateGridLayout();
@@ -74,38 +82,54 @@ public class MenuController : MonoBehaviour
         // Загрузка сохраненных настроек
         LoadSettings();
 
-        // Настройка обработчиков
+        // Настройка обработчиков событий
         masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
 
+    /// <summary>
+    /// Обновление каждый кадр (временно не используется)
+    /// </summary>
     private void Update()
     {
-
+        // Можно добавить логику обновления при необходимости
     }
 
-    #region Основная навигация
+    #region Основная навигация по меню
 
+    /// <summary>
+    /// Показывает главное меню и скрывает другие панели
+    /// </summary>
     public void ShowMainMenu()
     {
         mainMenuPanel.SetActive(true);
         topicSelectPanel.SetActive(false);
         levelSelectPanel.SetActive(false);
         loadingPanel.SetActive(false);
+        settingsPanel.SetActive(false);
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки "Играть"
+    /// </summary>
     public void OnPlayButtonClicked()
     {
         mainMenuPanel.SetActive(false);
         topicSelectPanel.SetActive(true);
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки "Настройки"
+    /// </summary>
     public void OnSettingsButtonClicked()
     {
         mainMenuPanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки "Выход"
+    /// </summary>
     public void OnExitButtonClicked()
     {
         Application.Quit();
@@ -119,6 +143,10 @@ public class MenuController : MonoBehaviour
 
     #region Выбор темы и уровней
 
+    /// <summary>
+    /// Обработчик выбора темы
+    /// </summary>
+    /// <param name="topicName">Название выбранной темы</param>
     public void OnTopicSelected(string topicName)
     {
         if (!gameTopics.ContainsKey(topicName)) return;
@@ -127,6 +155,9 @@ public class MenuController : MonoBehaviour
         StartCoroutine(TransitionToLevelSelection());
     }
 
+    /// <summary>
+    /// Корутина для плавного перехода к выбору уровня
+    /// </summary>
     private IEnumerator TransitionToLevelSelection()
     {
         topicSelectPanel.SetActive(false);
@@ -146,42 +177,66 @@ public class MenuController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Инициализация панели выбора уровней
+    /// </summary>
     private void InitializeLevelSelection()
     {
-        // Очистка старых кнопок
+        // Очистка старых кнопок уровней
         foreach (Transform child in levelButtonsContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Настройка сетки
+        // Настройка параметров сетки
+        ConfigureGridLayout();
+
+        // Создание кнопок для каждого уровня
+        CreateLevelButtons();
+
+        // Принудительное обновление layout
+        LayoutRebuilder.ForceRebuildLayoutImmediate(levelButtonsContainer.GetComponent<RectTransform>());
+    }
+
+    /// <summary>
+    /// Настраивает параметры GridLayout в зависимости от ориентации экрана
+    /// </summary>
+    private void ConfigureGridLayout()
+    {
         var grid = levelButtonsContainer.GetComponent<GridLayoutGroup>();
         if (grid == null)
         {
             grid = levelButtonsContainer.gameObject.AddComponent<GridLayoutGroup>();
             grid.cellSize = new Vector2(300, 80);
             grid.spacing = new Vector2(20, 20);
-            grid.constraintCount = 2; // 2 колонки
-            if (Screen.width > Screen.height) // Горизонтальная
-            {
-                grid.cellSize = new Vector2(250, 80);
-                grid.constraintCount = 4;
-            }
-            else // Вертикальная
-            {
-                grid.cellSize = new Vector2(300, 100);
-                grid.constraintCount = 2;
-            }
+            grid.constraintCount = 2; // 2 колонки по умолчанию
         }
 
-        // Создание кнопок
+        // Адаптация под ориентацию экрана
+        if (Screen.width > Screen.height) // Горизонтальная ориентация
+        {
+            grid.cellSize = new Vector2(250, 80);
+            grid.constraintCount = 4;
+        }
+        else // Вертикальная ориентация
+        {
+            grid.cellSize = new Vector2(300, 100);
+            grid.constraintCount = 2;
+        }
+    }
+
+    /// <summary>
+    /// Создает кнопки для каждого уровня в выбранной теме
+    /// </summary>
+    private void CreateLevelButtons()
+    {
         var levels = gameTopics[currentSelectedTopic].LevelScenes;
         for (int i = 0; i < levels.Count; i++)
         {
             Button levelButton = Instantiate(levelButtonPrefab, levelButtonsContainer);
             levelButton.GetComponentInChildren<Text>().text = $"Уровень {i + 1}";
 
-            // Настройка внешнего вида
+            // Настройка цветов кнопки
             var colors = levelButton.colors;
             colors.normalColor = new Color(0.2f, 0.4f, 0.8f);
             levelButton.colors = colors;
@@ -189,12 +244,12 @@ public class MenuController : MonoBehaviour
             int levelIndex = i;
             levelButton.onClick.AddListener(() => OnLevelSelected(levelIndex));
         }
-
-        // Принудительное обновление layout
-        LayoutRebuilder.ForceRebuildLayoutImmediate(levelButtonsContainer.GetComponent<RectTransform>());
     }
 
-    void CalculateGridLayout()
+    /// <summary>
+    /// Вычисляет оптимальное расположение кнопок в сетке
+    /// </summary>
+    private void CalculateGridLayout()
     {
         int levelsCount = gameTopics[currentSelectedTopic].LevelScenes.Count;
         var grid = levelButtonsContainer.GetComponent<GridLayoutGroup>();
@@ -209,11 +264,19 @@ public class MenuController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Обработчик выбора конкретного уровня
+    /// </summary>
+    /// <param name="levelIndex">Индекс выбранного уровня</param>
     private void OnLevelSelected(int levelIndex)
     {
         StartCoroutine(LoadLevelAsync(gameTopics[currentSelectedTopic].LevelScenes[levelIndex]));
     }
 
+    /// <summary>
+    /// Корутина для асинхронной загрузки уровня
+    /// </summary>
+    /// <param name="sceneName">Имя сцены для загрузки</param>
     private IEnumerator LoadLevelAsync(string sceneName)
     {
         loadingPanel.SetActive(true);
@@ -235,8 +298,11 @@ public class MenuController : MonoBehaviour
 
     #endregion
 
-    #region Кнопки "Назад"
+    #region Навигация "Назад"
 
+    /// <summary>
+    /// Обработчик кнопки "Назад" из выбора темы или настроек
+    /// </summary>
     public void OnBackFromTopicSelect()
     {
         topicSelectPanel.SetActive(false);
@@ -244,12 +310,23 @@ public class MenuController : MonoBehaviour
         mainMenuPanel.SetActive(true);
     }
 
+    /// <summary>
+    /// Обработчик кнопки "Назад" из выбора уровня
+    /// </summary>
     public void OnBackFromLevelSelect()
     {
         levelSelectPanel.SetActive(false);
         topicSelectPanel.SetActive(true);
     }
 
+    #endregion
+
+    #region Управление настройками
+
+    /// <summary>
+    /// Устанавливает громкость основного микшера
+    /// </summary>
+    /// <param name="volume">Уровень громкости (0-1)</param>
     public void SetMasterVolume(float volume)
     {
         float volumeValue = masterVolumeSlider.value;
@@ -267,12 +344,19 @@ public class MenuController : MonoBehaviour
         PlayerPrefs.SetFloat("MasterVolume", volumeValue);
     }
 
+    /// <summary>
+    /// Устанавливает полноэкранный режим
+    /// </summary>
+    /// <param name="isFullscreen">Включить полноэкранный режим?</param>
     public void SetFullscreen(bool isFullscreen)
     {
         Screen.fullScreen = isFullscreen;
         PlayerPrefs.SetInt("FullscreenMode", isFullscreen ? 1 : 0);
     }
 
+    /// <summary>
+    /// Загружает сохраненные настройки
+    /// </summary>
     private void LoadSettings()
     {
         // Громкость (значение по умолчанию 0.8)
@@ -288,8 +372,11 @@ public class MenuController : MonoBehaviour
 
     #endregion
 
-    #region Вспомогательный класс
+    #region Вспомогательные классы
 
+    /// <summary>
+    /// Вспомогательный класс для хранения данных о теме
+    /// </summary>
     private class TopicData
     {
         public List<string> LevelScenes { get; }

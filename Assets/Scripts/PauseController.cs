@@ -1,42 +1,77 @@
 using UnityEngine;
 
+/// <summary>
+/// Контроллер паузы игры с управлением временем и звуковыми эффектами
+/// </summary>
 public class PauseController : MonoBehaviour
 {
-    private float[] originalPitches; // Сохраняем оригинальные pitch
-    private AudioSource[] audioSources;
-    private bool isPaused = false;
+    private float[] _originalPitches; // Массив оригинальных значений pitch аудио источников
+    private AudioSource[] _audioSources; // Кэшированные аудио источники
+    private bool _isPaused = false; // Флаг состояния паузы
 
+    /// <summary>
+    /// Ставит игру на паузу
+    /// </summary>
     public void Pause()
     {
-        if (isPaused) return;
+        if (_isPaused) return;
 
+        // Остановка игрового времени
         Time.timeScale = 0f;
-        audioSources = FindObjectsOfType<AudioSource>();
-        originalPitches = new float[audioSources.Length];
 
-        for (int i = 0; i < audioSources.Length; i++)
+        // Получаем все аудио источники в сцене
+        _audioSources = FindObjectsOfType<AudioSource>();
+        _originalPitches = new float[_audioSources.Length];
+
+        // Применяем эффект паузы ко всем аудио источникам
+        for (int i = 0; i < _audioSources.Length; i++)
         {
-            originalPitches[i] = audioSources[i].pitch;
-            audioSources[i].pitch = 0f; // Эффект паузы
+            if (_audioSources[i] == null) continue;
+
+            // Сохраняем оригинальный pitch
+            _originalPitches[i] = _audioSources[i].pitch;
+            // Устанавливаем pitch в 0 для эффекта паузы
+            _audioSources[i].pitch = 0f;
         }
 
-        isPaused = true;
+        _isPaused = true;
     }
 
+    /// <summary>
+    /// Возобновляет игру
+    /// </summary>
     public void Resume()
     {
-        if (!isPaused) return;
+        if (!_isPaused) return;
 
+        // Восстанавливаем нормальное игровое время
         Time.timeScale = 1f;
 
-        for (int i = 0; i < audioSources.Length; i++)
+        // Восстанавливаем оригинальные параметры звука
+        for (int i = 0; i < _audioSources.Length; i++)
         {
-            if (audioSources[i] != null)
+            // Проверка на случай уничтоженных объектов
+            if (_audioSources[i] != null)
             {
-                audioSources[i].pitch = originalPitches[i]; // Восстанавливаем pitch
+                _audioSources[i].pitch = _originalPitches[i];
             }
         }
 
-        isPaused = false;
+        _isPaused = false;
+    }
+
+    /// <summary>
+    /// Переключает состояние паузы
+    /// </summary>
+    public void TogglePause()
+    {
+        if (_isPaused)
+        {
+            Resume();
+        }
+        else
+        {
+            Pause();
+        }
     }
 }

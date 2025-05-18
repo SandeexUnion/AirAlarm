@@ -1,67 +1,101 @@
 using UnityEngine;
 
+/// <summary>
+/// Абстрактный базовый класс для всех состояний движения персонажа
+/// </summary>
 public abstract class MovementState
 {
-    protected Moving context;
+    protected readonly Moving context;
 
-    public MovementState(Moving context) => this.context = context;
+    /// <summary>
+    /// Конструктор базового класса состояния
+    /// </summary>
+    /// <param name="context">Ссылка на контроллер движения</param>
+    public MovementState(Moving context)
+    {
+        this.context = context;
+    }
 
     public virtual void Enter() { }
     public virtual void Exit() { }
     public abstract void Update();
 }
 
+/// <summary>
+/// Состояние нахождения на земле (ходьба, бег, приседание)
+/// </summary>
 public class GroundedState : MovementState
 {
+    private const float CrouchHeight = 0.25f;
+    private const float StandHeight = 0.5f;
+    private const float MovementThreshold = 0.1f;
+
     public GroundedState(Moving context) : base(context) { }
 
     public override void Update()
+    {
+        HandleMovementInput();
+        HandleFootstepSounds();
+    }
+
+    private void HandleMovementInput()
     {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical);
         context.moveDirection = context.transform.TransformDirection(inputDirection);
+    }
 
-        if (context.moveDirection.magnitude > 0.1f && !context.isPlayingSteps)
+    private void HandleFootstepSounds()
+    {
+        bool isMoving = context.moveDirection.magnitude > MovementThreshold;
+
+        if (isMoving && !context.isPlayingSteps)
         {
             context.steps.Play();
             context.isPlayingSteps = true;
         }
-        else if (context.moveDirection.magnitude <= 0.1f && context.isPlayingSteps)
+        else if (!isMoving && context.isPlayingSteps)
         {
             context.steps.Stop();
             context.isPlayingSteps = false;
         }
-
-        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.C))
-            context.GetComponent<CharacterController>().height = 0.25f;
-        else
-            context.GetComponent<CharacterController>().height = 0.5f;
     }
+
+   
 }
 
+/// <summary>
+/// Состояние нахождения в воздухе (прыжок, падение)
+/// </summary>
 public class AirborneState : MovementState
 {
     public AirborneState(Moving context) : base(context) { }
 
     public override void Update()
     {
+        Vector3 newDirection = CalculateMovement();
+        newDirection.y = context.moveDirection.y - context.gravity * Time.deltaTime;
+        context.moveDirection = newDirection;
+    }
+
+    private Vector3 CalculateMovement()
+    {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical);
-        Vector3 currentDirection = context.moveDirection;
-        currentDirection.x = context.transform.TransformDirection(inputDirection).x;
-        currentDirection.z = context.transform.TransformDirection(inputDirection).z;
-        currentDirection.y -= context.gravity * Time.deltaTime;
-
-        context.moveDirection = currentDirection;
+        return context.transform.TransformDirection(inputDirection);
     }
 }
 
+/// <summary>
+/// Состояние во время катсцены (движение заблокировано)
+/// </summary>
 public class CutsceneState : MovementState
 {
     public CutsceneState(Moving context) : base(context) { }
+
     public override void Update() { }
 }

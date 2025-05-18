@@ -2,23 +2,32 @@
 using UnityEngine;
 using UnityEngine.Playables;
 
+/// <summary>
+/// Класс для управления взаимодействиями с объектами (захват, бросок, использование)
+/// </summary>
 public class Drag : MonoBehaviour
 {
-    public PlayableDirector timeline;
-    public BlinkEffect bf;
-    public GameObject playerCam;
-    public string GrabButton = "Grab";
-    public string ThrowButton = "Throw";
-    public string UseButton = "Use";
-    public float reducedMouseSensitivity = 0.1f;
-    public CrosshairGUI crosshairGUI;
+    [Header("Основные компоненты")]
+    [SerializeField] private PlayableDirector timeline;
+    [SerializeField] private BlinkEffect blinkEffect;
+    [SerializeField] private GameObject playerCam;
+    [SerializeField] private CrosshairGUI crosshairGUI;
+
+    [Header("Настройки управления")]
+    [SerializeField] private string grabButton = "Grab";
+    [SerializeField] private string throwButton = "Throw";
+    [SerializeField] private string useButton = "Use";
+    [SerializeField] private float reducedMouseSensitivity = 0.1f;
+    [SerializeField] private float maxDistanceGrab = 1.5f;
+
+    [Header("Теги для взаимодействий")]
+    [SerializeField] public InteractionTags tags = new InteractionTags();
 
     private Inventory inventorySystem;
     private Interaction currentInteraction;
     private GameObject objectHeld;
     private bool isObjectHeld;
     private bool tryPickupObject;
-    private float maxDistanceGrab = 1.5f;
 
     [System.Serializable]
     public class InteractionTags
@@ -28,16 +37,31 @@ public class Drag : MonoBehaviour
         public string doorTag = "Door";
     }
 
-    public InteractionTags tags = new InteractionTags();
-
     private void Start()
     {
         inventorySystem = GetComponent<Inventory>();
     }
 
+    private void Update()
+    {
+        HandleInput();
+    }
+
+    #region Обработка ввода
+
+    /// <summary>
+    /// Обрабатывает все вводимые команды взаимодействия
+    /// </summary>
     private void HandleInput()
     {
-        if (Input.GetButton(GrabButton))
+        HandleGrabInput();
+        HandleThrowInput();
+        HandleUseInput();
+    }
+
+    private void HandleGrabInput()
+    {
+        if (Input.GetButton(grabButton))
         {
             if (!isObjectHeld)
             {
@@ -53,73 +77,91 @@ public class Drag : MonoBehaviour
         {
             DropObject();
         }
+    }
 
-        if (Input.GetButton(ThrowButton) && isObjectHeld)
+    private void HandleThrowInput()
+    {
+        if (Input.GetButton(throwButton) && isObjectHeld)
         {
             ThrowObject();
         }
+    }
 
-        if (Input.GetButtonDown(UseButton) && isObjectHeld)
+    private void HandleUseInput()
+    {
+        if (Input.GetButtonDown(useButton) && isObjectHeld)
         {
             Use();
         }
     }
 
-    void Update()
-    {
-        HandleInput();
-    }
+    #endregion
 
+    #region Взаимодействие с объектами
+
+    /// <summary>
+    /// Пытается подобрать объект перед игроком
+    /// </summary>
     private void TryPickObject()
     {
         Ray playerAim = playerCam.GetComponent<Camera>().ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        RaycastHit hit;
-
-        if (Physics.Raycast(playerAim, out hit, maxDistanceGrab))
+        if (Physics.Raycast(playerAim, out RaycastHit hit, maxDistanceGrab))
         {
-            // Обработка кровати (специальный случай)
-            if (hit.collider.gameObject.name == "Old_wood_bed" && hit.collider.CompareTag(tags.interactTag))
+            HandleSpecialCases(hit);
+            HandleRegularObjects(hit);
+        }
+    }
+
+    private void HandleSpecialCases(RaycastHit hit)
+    {
+        // Обработка кровати (специальный случай)
+        if (hit.collider.gameObject.name == "Old_wood_bed" && hit.collider.CompareTag(tags.interactTag))
+        {
+            HandleBedInteraction(hit);
+            blinkEffect.CloseEyes = true;
+            blinkEffect.Blink();
+            return;
+        }
+
+        // Для дверей - особые условия
+        if (hit.collider.CompareTag(tags.doorTag))
+        {
+            HandleDoorInteraction(hit);
+        }
+    }
+
+    private void HandleRegularObjects(RaycastHit hit)
+    {
+        if (hit.collider.CompareTag(tags.interactTag) || hit.collider.CompareTag(tags.itemTag))
+        {
+            objectHeld = hit.collider.gameObject;
+            currentInteraction = InteractionFactory.CreateInteraction(hit.collider.tag);
+
+            if (currentInteraction != null)
             {
-                HandleBedInteraction(hit);
-                bf.CloseEyes = true;
-                bf.Blink();
-                return;
-            }
-
-            // Для дверей - особые условия
-            if (hit.collider.CompareTag(tags.doorTag) && tryPickupObject)
-            {
-                float distanceToPlayer = Vector3.Distance(hit.point, playerCam.transform.position);
-                if (distanceToPlayer > 1.5f) return; // Максимальная дистанция для дверей
-
-                objectHeld = hit.collider.gameObject;
-                currentInteraction = new DoorInteraction(); // Создаем специальное взаимодействие для двери
-
                 isObjectHeld = true;
                 currentInteraction.OnGrab(objectHeld.GetComponent<Rigidbody>());
-                return;
-            }
-
-            // Обычные объекты
-            if (hit.collider.CompareTag(tags.interactTag) ||
-                hit.collider.CompareTag(tags.itemTag))
-            {
-                objectHeld = hit.collider.gameObject;
-                currentInteraction = InteractionFactory.CreateInteraction(hit.collider.tag);
-
-                if (currentInteraction != null)
-                {
-                    isObjectHeld = true;
-                    currentInteraction.OnGrab(objectHeld.GetComponent<Rigidbody>());
-                }
             }
         }
+    }
+
+    private void HandleDoorInteraction(RaycastHit hit)
+    {
+        if (!tryPickupObject) return;
+
+        float distanceToPlayer = Vector3.Distance(hit.point, playerCam.transform.position);
+        if (distanceToPlayer > 1.5f) return;
+
+        objectHeld = hit.collider.gameObject;
+        currentInteraction = new DoorInteraction();
+        isObjectHeld = true;
+        currentInteraction.OnGrab(objectHeld.GetComponent<Rigidbody>());
     }
 
     private void HandleBedInteraction(RaycastHit hit)
     {
         crosshairGUI.isLookingAtInteractable = true;
-        if (bf != null) bf.CloseEyes = true;
+        if (blinkEffect != null) blinkEffect.CloseEyes = true;
         hit.collider.gameObject.tag = "Untagged";
         StartCoroutine(WaitAndExecute());
     }
@@ -127,12 +169,14 @@ public class Drag : MonoBehaviour
     private IEnumerator WaitAndExecute()
     {
         yield return new WaitForSeconds(4f);
-        if (bf != null) bf.CloseEyes = false;
+        if (blinkEffect != null) blinkEffect.CloseEyes = false;
         if (timeline != null) timeline.Play();
-        if (GetComponent<AudioManager>() != null)
-            GetComponent<AudioManager>().PlayNextTrack();
+        GetComponent<AudioManager>()?.PlayNextTrack();
     }
 
+    /// <summary>
+    /// Удерживает объект перед игроком
+    /// </summary>
     private void HoldObject()
     {
         if (currentInteraction == null) return;
@@ -149,6 +193,43 @@ public class Drag : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Бросает удерживаемый объект
+    /// </summary>
+    private void ThrowObject()
+    {
+        if (!isObjectHeld) return;
+
+        isObjectHeld = false;
+        currentInteraction?.OnThrow(objectHeld.GetComponent<Rigidbody>(), playerCam.transform.forward);
+        objectHeld = null;
+        currentInteraction = null;
+    }
+
+    /// <summary>
+    /// Использует удерживаемый объект
+    /// </summary>
+    private void Use()
+    {
+        if (!isObjectHeld || objectHeld == null) return;
+
+        if (objectHeld.CompareTag(tags.itemTag) || objectHeld.CompareTag(tags.interactTag))
+        {
+            inventorySystem.AddToInventory(objectHeld);
+            isObjectHeld = false;
+
+            objectHeld.SendMessage("UseObject", SendMessageOptions.DontRequireReceiver);
+            Destroy(objectHeld);
+
+            objectHeld = null;
+            currentInteraction = null;
+            Debug.Log("Предмет добавлен в инвентарь");
+        }
+    }
+
+    /// <summary>
+    /// Отпускает удерживаемый объект
+    /// </summary>
     private void DropObject()
     {
         if (!isObjectHeld) return;
@@ -160,35 +241,5 @@ public class Drag : MonoBehaviour
         currentInteraction = null;
     }
 
-    private void ThrowObject()
-    {
-        if (!isObjectHeld) return;
-
-        isObjectHeld = false;
-        currentInteraction?.OnThrow(objectHeld.GetComponent<Rigidbody>(), playerCam.transform.forward);
-        objectHeld = null;
-        currentInteraction = null;
-    }
-
-    private void Use()
-    {
-        // Убираем лишние вызовы TryPickObject
-        if (!isObjectHeld || objectHeld == null) return;
-
-        // Проверяем, можно ли добавить в инвентарь
-        if (objectHeld.CompareTag(tags.itemTag) || objectHeld.CompareTag(tags.interactTag))
-        {
-            inventorySystem.AddToInventoryNewItem(objectHeld);
-            isObjectHeld = false;
-
-            // Вызываем методы объекта перед уничтожением
-            objectHeld.SendMessage("UseObject", SendMessageOptions.DontRequireReceiver);
-            Destroy(objectHeld);
-
-            objectHeld = null;
-            currentInteraction = null;
-            Debug.Log("Предмет добавлен в инвентарь");
-        }
-    }
+    #endregion
 }
-

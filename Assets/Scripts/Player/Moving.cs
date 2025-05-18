@@ -1,44 +1,79 @@
 using UnityEngine;
 using UnityEngine.Playables;
 
+/// <summary>
+/// Контроллер движения персонажа, управляющий передвижением, камерой и состояниями
+/// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class Moving : MonoBehaviour
 {
-    public float groundDistance = 2f;
-    public float walkingSpeed = 7.5f;
-    public float gravity = 20.0f;
-    public GameObject playerCamera;
-    public float lookSpeed = 2.0f;
-    public float lookXLimit = 45.0f;
-    public Rigidbody rb;
-    public AudioSource steps;
-    public PlayableDirector playableDirector;
+    [Header("Параметры движения")]
+    [SerializeField] private float groundDistance = 2f;
+    [SerializeField] private float walkingSpeed = 7.5f;
+    [SerializeField] public float gravity = 20.0f;
+    [SerializeField] private float lookSpeed = 2.0f;
+    [SerializeField] private float lookXLimit = 45.0f;
 
+    [Header("Ссылки на компоненты")]
+    [SerializeField] private GameObject playerCamera;
+    [SerializeField] private Rigidbody rb;
+    [SerializeField] public AudioSource steps;
+    [SerializeField] private PlayableDirector playableDirector;
+    [SerializeField] private PauseMenu pauseMenu;
+
+    [Header("Состояния движения")]
+    [Tooltip("Находится ли персонаж на земле")]
     [HideInInspector] public bool isGrounded;
+
+    [Tooltip("Двигается ли персонаж в данный момент")]
     [HideInInspector] public bool isMoving;
+
+    [Tooltip("Может ли персонаж двигаться")]
     [HideInInspector] public bool canMove = true;
+
+    [Tooltip("Проигрываются ли звуки шагов")]
     [HideInInspector] public bool isPlayingSteps = false;
 
     private CharacterController characterController;
     private MovementState currentState;
-    private Vector3 _moveDirection;
     private float rotationX = 0;
-    public PauseMenu pauseMenu;
+    private Vector3 _moveDirection;
 
+    /// <summary>
+    /// Направление движения персонажа
+    /// </summary>
     public Vector3 moveDirection
     {
         get => _moveDirection;
         set => _moveDirection = value;
     }
 
-    void Start()
+    /// <summary>
+    /// Инициализация компонентов
+    /// </summary>
+    private void Start()
     {
         characterController = GetComponent<CharacterController>();
         IsCursorLock(true);
         SetState(new GroundedState(this));
     }
 
-    void Update()
+    /// <summary>
+    /// Обновление логики движения каждый кадр
+    /// </summary>
+    private void Update()
+    {
+        HandleCutsceneState();
+        CheckGroundStatus();
+        UpdateMovement();
+        HandleCameraRotation();
+        HandlePauseInput();
+    }
+
+    /// <summary>
+    /// Обработка состояния во время катсцены
+    /// </summary>
+    private void HandleCutsceneState()
     {
         if (playableDirector != null && playableDirector.state == PlayState.Playing)
         {
@@ -52,14 +87,31 @@ public class Moving : MonoBehaviour
             isMoving = true;
             SetState(new GroundedState(this));
         }
+    }
 
+    /// <summary>
+    /// Проверка, находится ли персонаж на земле
+    /// </summary>
+    private void CheckGroundStatus()
+    {
         Vector3 origin = transform.position + Vector3.forward * 0.25f;
         isGrounded = Physics.Raycast(origin, Vector3.down, groundDistance);
+    }
 
-        currentState.Update();
-
+    /// <summary>
+    /// Обновление движения персонажа
+    /// </summary>
+    private void UpdateMovement()
+    {
+        currentState?.Update();
         characterController.Move(_moveDirection * walkingSpeed * Time.deltaTime);
+    }
 
+    /// <summary>
+    /// Обработка вращения камеры
+    /// </summary>
+    private void HandleCameraRotation()
+    {
         if (!pauseMenu.isPauseMenuShowing && canMove)
         {
             rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
@@ -67,15 +119,26 @@ public class Moving : MonoBehaviour
             playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
+    }
+
+    /// <summary>
+    /// Обработка ввода для паузы
+    /// </summary>
+    private void HandlePauseInput()
+    {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (pauseMenu.isPauseMenuShowing)
-                pauseMenu.HidePouseMenu();
+                pauseMenu.HidePauseMenu();
             else
-                pauseMenu.ShowPouseMenu();
+                pauseMenu.ShowPauseMenu();
         }
     }
 
+    /// <summary>
+    /// Установка нового состояния движения
+    /// </summary>
+    /// <param name="newState">Новое состояние</param>
     public void SetState(MovementState newState)
     {
         currentState?.Exit();
@@ -83,17 +146,13 @@ public class Moving : MonoBehaviour
         currentState.Enter();
     }
 
+    /// <summary>
+    /// Управление состоянием курсора
+    /// </summary>
+    /// <param name="isCursorLock">Заблокировать ли курсор</param>
     public void IsCursorLock(bool isCursorLock)
     {
-        if (isCursorLock == true)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+        Cursor.lockState = isCursorLock ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !isCursorLock;
     }
 }

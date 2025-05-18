@@ -1,24 +1,46 @@
 using UnityEngine;
 
+/// <summary>
+/// Менеджер аудио, управляющий воспроизведением звуковых дорожек и связанными событиями
+/// </summary>
 public class AudioManager : MonoBehaviour
 {
+    [Header("Аудио настройки")]
     [SerializeField] private AudioClip[] audioClips;
+    [SerializeField] private AudioSource audioSource;
+
+    [Header("Связанные компоненты")]
     [SerializeField] private CommentController commentController;
     [SerializeField] private BlinkEffect blinkEffect;
-    [SerializeField] private GameObject triggers1;
-    [SerializeField] private GameObject triggers2;
 
-    private AudioSource audioSource;
+    [Header("Триггеры уровня")]
+    [SerializeField] private GameObject triggersPhase1;
+    [SerializeField] private GameObject triggersPhase2;
+
     private int currentTrackIndex = 0;
     private bool hasFinished = false;
+    private const string DeathClipName = "смерть";
+    private const string SirenClipName = "Сирена2.";
 
-    void Awake()
+    private void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
+
         PlayNextTrack();
     }
 
-    void Update()
+    private void Update()
+    {
+        HandleAudioPlayback();
+    }
+
+    /// <summary>
+    /// Обрабатывает состояние воспроизведения аудио
+    /// </summary>
+    private void HandleAudioPlayback()
     {
         if (!audioSource.isPlaying && !hasFinished)
         {
@@ -27,33 +49,67 @@ public class AudioManager : MonoBehaviour
         }
         else if (audioSource.isPlaying)
         {
-            if (audioSource.clip.name == "Сирена2.")
-            {
-                triggers1.SetActive(false);
-                triggers2.SetActive(true);
-            }
+            HandleSpecialTracks();
             hasFinished = false;
         }
     }
 
-    void OnAudioFinished()
+    /// <summary>
+    /// Обрабатывает специальные треки с особым поведением
+    /// </summary>
+    private void HandleSpecialTracks()
     {
-        currentTrackIndex++;
-
-        if (audioSource.clip.name == "смерть")
+        if (audioSource.clip.name == SirenClipName)
         {
-            blinkEffect.CloseEyes = true;
-        }
-        else
-        {
-            commentController.ShowComment("Думаю уже можно выходить.");
+            triggersPhase1.SetActive(false);
+            triggersPhase2.SetActive(true);
         }
     }
 
+    /// <summary>
+    /// Вызывается при завершении воспроизведения трека
+    /// </summary>
+    private void OnAudioFinished()
+    {
+        currentTrackIndex++;
+
+        
+        
+        commentController?.ShowComment("Думаю уже можно выходить.");
+        
+    }
+
+    /// <summary>
+    /// Воспроизводит следующий трек в плейлисте
+    /// </summary>
     public void PlayNextTrack()
     {
+        if (audioClips == null || audioClips.Length == 0)
+        {
+            Debug.LogWarning("Нет аудио клипов для воспроизведения");
+            return;
+        }
+
+        if (currentTrackIndex >= audioClips.Length)
+        {
+            Debug.Log("Все треки воспроизведены");
+            return;
+        }
+
         audioSource.clip = audioClips[currentTrackIndex];
         audioSource.Play();
         Debug.Log($"Воспроизводится трек: {audioSource.clip.name}");
+    }
+
+    /// <summary>
+    /// Перезапускает текущий трек
+    /// </summary>
+    public void RestartCurrentTrack()
+    {
+        if (audioSource.clip != null)
+        {
+            audioSource.Stop();
+            audioSource.Play();
+        }
     }
 }

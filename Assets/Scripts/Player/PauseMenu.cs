@@ -1,36 +1,108 @@
 using UnityEngine;
 
+/// <summary>
+/// Контроллер меню паузы, управляющий отображением/скрытием панели паузы
+/// и взаимодействующий с системами управления паузой и движением.
+/// </summary>
 public class PauseMenu : MonoBehaviour
 {
-    [SerializeField] private GameObject menuPanel;
-    [SerializeField] private PauseController pauseController;
-    [SerializeField] private Moving moving;
+    [Header("Основные компоненты")]
+    [SerializeField] private GameObject menuPanel;          // Панель меню паузы
+    [SerializeField] private PauseController pauseController; // Контроллер паузы игры
+    [SerializeField] private Moving moving;                // Контроллер движения игрока
 
-    public bool isPauseMenuShowing;
+    [Header("Состояние меню")]
+    [Tooltip("Флаг, указывающий отображается ли в данный момент меню паузы")]
+    public bool isPauseMenuShowing;                        // Текущее состояние видимости меню
 
-    void Start()
+    /// <summary>
+    /// Инициализация при старте
+    /// </summary>
+    private void Start()
     {
+        // Скрываем меню паузы при старте
         menuPanel.SetActive(false);
+        isPauseMenuShowing = false;
     }
 
-    void Update()
+    /// <summary>
+    /// Обновление каждый кадр (оставлено для возможного расширения функционала)
+    /// </summary>
+    private void Update()
     {
-
+        // Можно добавить логику проверки ввода для открытия/закрытия паузы
     }
 
-    public void ShowPouseMenu()
+    #region Управление видимостью меню паузы
+
+    /// <summary>
+    /// Показывает меню паузы и ставит игру на паузу
+    /// </summary>
+    public void ShowPauseMenu()
     {
+        // Устанавливаем флаг видимости
         isPauseMenuShowing = true;
+
+        // Активируем панель меню
         menuPanel.SetActive(true);
+
+        // Разблокируем курсор
         moving.IsCursorLock(false);
+
+        // Ставим игру на паузу
         pauseController.Pause();
     }
 
-    public void HidePouseMenu()
+    /// <summary>
+    /// Скрывает меню паузы и возобновляет игру
+    /// </summary>
+    public void HidePauseMenu()
     {
+        // Сбрасываем флаг видимости
         isPauseMenuShowing = false;
+
+        // Деактивируем панель меню
         menuPanel.SetActive(false);
+
+        // Блокируем курсор
         moving.IsCursorLock(true);
+
+        // Возобновляем игру
         pauseController.Resume();
     }
+
+    #endregion
+
+    #region Обработчики кнопок меню
+
+    /// <summary>
+    /// Обработчик кнопки "Продолжить"
+    /// </summary>
+    public void OnContinueButtonClicked()
+    {
+        HidePauseMenu();
+    }
+
+    /// <summary>
+    /// Обработчик кнопки "В главное меню"
+    /// </summary>
+    public void OnMainMenuButtonClicked()
+    {
+        // Здесь должна быть реализация загрузки главного меню
+        Debug.Log("Loading main menu...");
+    }
+
+    /// <summary>
+    /// Обработчик кнопки "Выход"
+    /// </summary>
+    public void OnQuitButtonClicked()
+    {
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
+
+    #endregion
 }

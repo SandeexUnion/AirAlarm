@@ -1,72 +1,143 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
+/// <summary>
+/// Система инвентаря для управления коллекцией предметов
+/// </summary>
 public class Inventory : MonoBehaviour
 {
-    private Drag playerDrag;
-    private List<string> basicNames = new List<string>
+    [Header("Настройки инвентаря")]
+    [Tooltip("Базовые имена объектов, которые не должны добавляться в инвентарь")]
+    [SerializeField]
+    private List<string> basicObjectNames = new List<string>
     {
-        "Cube",        // Куб
-        "Sphere",      // Сфера
-        "Capsule",     // Капсула
-        "Cylinder",    // Цилиндр
-        "Plane",       // Плоскость (большая, с 10x10 полигонов)
-        "Quad",        // Квадрат (1x1 полигон, часто для UI или декалей)
-        "Terrain",     // Ландшафт (Terrain)
-        "Wind Zone",   // Зона ветра (для деревьев/травы)
-        "3D Text",     // Устаревший 3D-текст (Legacy)
+        "Cube",        // Примитив: Куб
+        "Sphere",      // Примитив: Сфера
+        "Capsule",     // Примитив: Капсула
+        "Cylinder",    // Примитив: Цилиндр
+        "Plane",       // Примитив: Плоскость
+        "Quad",        // Примитив: Квадрат
+        "Terrain",     // Компонент ландшафта
+        "Wind Zone",   // Компонент ветра
+        "3D Text"      // Устаревший 3D текст
     };
 
-    // Заменяем массив на List, который может динамически расширяться
-    [SerializeField]
-    private List<string> inventoryItems = new List<string>();
+    [Tooltip("Предметы в инвентаре")]
+    [SerializeField] private List<string> inventoryItems = new List<string>();
 
-    void Start()
+    private Drag playerDrag;
+
+    private void Start()
     {
-        playerDrag = Object.FindFirstObjectByType<Drag>();
+        playerDrag = FindObjectOfType<Drag>();
+        if (playerDrag == null)
+        {
+            Debug.LogWarning("Не найден компонент Drag в сцене");
+        }
     }
 
-    public void AddToInventoryNewItem(GameObject item)
+    /// <summary>
+    /// Добавляет предмет в инвентарь после проверки
+    /// </summary>
+    public void AddToInventory(GameObject item)
     {
-        if (item == null) return;
+        if (item == null)
+        {
+            Debug.LogWarning("Попытка добавить null объект в инвентарь");
+            return;
+        }
 
-        inventoryItems.Add(CheckIfItemNameIsNotBasic(item).name);
-        Debug.Log($"Предмет {CheckIfItemNameIsNotBasic(item).name} добавлен в инвентарь");
+        GameObject validItem = GetValidItemName(item);
+        if (validItem == null) return;
+
+        string itemName = validItem.name;
+        if (!inventoryItems.Contains(itemName))
+        {
+            inventoryItems.Add(itemName);
+            Debug.Log($"Предмет '{itemName}' добавлен в инвентарь. Всего предметов: {inventoryItems.Count}");
+        }
+        else
+        {
+            Debug.Log($"Предмет '{itemName}' уже есть в инвентаре");
+        }
     }
 
-    public void RemoveFromInventoryNewItem(GameObject item)
+    /// <summary>
+    /// Удаляет предмет из инвентаря
+    /// </summary>
+    public void RemoveFromInventory(GameObject item)
     {
-        if (item == null) return;
+        if (item == null)
+        {
+            Debug.LogWarning("Попытка удалить null объект из инвентаря");
+            return;
+        }
 
-        inventoryItems.Remove(item.name);
-        Debug.Log($"Предмет {item.name} удален из инвентаря");
+        if (inventoryItems.Remove(item.name))
+        {
+            Debug.Log($"Предмет '{item.name}' удален из инвентаря. Осталось предметов: {inventoryItems.Count}");
+        }
+        else
+        {
+            Debug.Log($"Предмет '{item.name}' не найден в инвентаре");
+        }
     }
 
-    public string[] ShowInventory()
+    /// <summary>
+    /// Возвращает копию списка предметов в инвентаре
+    /// </summary>
+    public IReadOnlyList<string> GetInventoryItems()
     {
-        Debug.Log("Содержимое инвентаря выведено");
-        return inventoryItems.ToArray();
+        Debug.Log($"Запрошено содержимое инвентаря. Всего предметов: {inventoryItems.Count}");
+        return inventoryItems.AsReadOnly();
     }
 
-    public bool FindItemInInventory(GameObject item)
+    /// <summary>
+    /// Проверяет наличие предмета в инвентаре
+    /// </summary>
+    public bool HasItem(GameObject item)
     {
-        bool found = inventoryItems.Contains(item.name);
-        Debug.Log(found ? $"Предмет {item.name} найден" : "Предмет не найден");
-        return found;
+        if (item == null) return false;
+
+        bool hasItem = inventoryItems.Contains(item.name);
+        Debug.Log(hasItem ?
+            $"Предмет '{item.name}' найден в инвентаре" :
+            $"Предмет '{item.name}' отсутствует в инвентаре");
+
+        return hasItem;
     }
 
-    private GameObject CheckIfItemNameIsNotBasic(GameObject item)
+    /// <summary>
+    /// Проверяет, является ли имя предмета базовым (не добавляемым в инвентарь)
+    /// </summary>
+    private GameObject GetValidItemName(GameObject item)
     {
         if (item == null) return null;
 
-        if (basicNames.Contains(item.name))
+        // Если это базовый объект, проверяем его родителя
+        if (basicObjectNames.Contains(item.name))
         {
-            if (item.transform.parent != null)
-            {
-                return item.transform.parent.gameObject;
-            }
-            return item;
+            return item.transform.parent != null ? item.transform.parent.gameObject : item;
         }
+
         return item;
+    }
+
+    /// <summary>
+    /// Очищает инвентарь полностью
+    /// </summary>
+    public void ClearInventory()
+    {
+        Debug.Log($"Инвентарь очищен. Удалено {inventoryItems.Count} предметов");
+        inventoryItems.Clear();
+    }
+
+    /// <summary>
+    /// Проверяет, пуст ли инвентарь
+    /// </summary>
+    public bool IsEmpty()
+    {
+        return inventoryItems.Count == 0;
     }
 }
