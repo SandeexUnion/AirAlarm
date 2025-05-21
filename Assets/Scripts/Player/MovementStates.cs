@@ -29,13 +29,31 @@ public class GroundedState : MovementState
     private const float CrouchHeight = 0.25f;
     private const float StandHeight = 0.5f;
     private const float MovementThreshold = 0.1f;
+    private CharacterController characterController;
 
-    public GroundedState(Moving context) : base(context) { }
+    public GroundedState(Moving context) : base(context)
+    {
+        characterController = context.GetComponent<CharacterController>();
+    }
 
     public override void Update()
     {
+        HandleCrouchInput();
         HandleMovementInput();
         HandleFootstepSounds();
+    }
+
+    private void HandleCrouchInput()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            context.isCrouching = !context.isCrouching;
+
+            float targetScale = context.isCrouching ? context.crouchHeight : 1f;
+            context.transform.localScale = new Vector3(1f, targetScale, 1f);
+
+            //context.characterController.height = targetScale;
+        }
     }
 
     private void HandleMovementInput()

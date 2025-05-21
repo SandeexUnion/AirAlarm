@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Audio;
-using Unity.VisualScripting;
 
 /// <summary>
 /// Контроллер главного меню, управляющий навигацией между панелями,
-/// настройками и загрузкой уровней.
+/// настройками и загрузкой уровней с поддержкой тематических спрайтов.
 /// </summary>
 public class MenuController : MonoBehaviour
 {
@@ -33,16 +32,24 @@ public class MenuController : MonoBehaviour
     [SerializeField] private Transform levelButtonsContainer;
     [SerializeField] private Button levelButtonPrefab;
     [SerializeField] private Text levelDescriptionText;
-    [SerializeField] private Image topicBackgroundImage;
+
+    // Система тематических спрайтов
+    [Header("Тематические спрайты")]
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private Image loadingScreenImage;
+    [SerializeField] private Sprite[] fireThemeSprites;
+    [SerializeField] private Sprite[] rocketThemeSprites;
+    [SerializeField] private Sprite[] tutorialThemeSprites;
+    [SerializeField] private Sprite defaultLoadingSprite;
 
     // Визуальные эффекты и анимации
     [Header("Визуальные эффекты")]
     [SerializeField] private Animator transitionAnimator;
     [SerializeField] private float transitionDuration = 0.5f;
-    public int a; // Временная переменная для тестирования
 
-    // Текущая выбранная тема
+    // Текущая выбранная тема и уровень
     private string currentSelectedTopic;
+    private int currentSelectedLevelIndex = -1;
 
     // Доступные темы и уровни
     private readonly Dictionary<string, TopicData> gameTopics = new Dictionary<string, TopicData>()
@@ -52,7 +59,8 @@ public class MenuController : MonoBehaviour
             new TopicData(
                 new List<string>{"FireLevel1", "FireLevel2", "FireLevel3"},
                 "Изучите правила поведения при пожаре в различных ситуациях",
-                new Color(0.8f, 0.2f, 0.2f) // Красный
+                new Color(0.8f, 0.2f, 0.2f), // Красный
+                0 // Индекс темы для спрайтов
             )
         },
         {
@@ -60,7 +68,8 @@ public class MenuController : MonoBehaviour
             new TopicData(
                 new List<string>{"RocketLevel1", "RocketLevel2", "RocketLevel3"},
                 "Действия при ракетном обстреле и угрозе взрыва",
-                new Color(0.4f, 0.4f, 0.4f) // Серый
+                new Color(0.4f, 0.4f, 0.4f), // Серый
+                1 // Индекс темы для спрайтов
             )
         },
         {
@@ -68,23 +77,18 @@ public class MenuController : MonoBehaviour
             new TopicData(
                 new List<string>{ "TutorialLevel1", "TutorialLevel2", "TutorialLevel"},
                 "Обучение",
-                new Color(0.2f, 0.4f, 0.8f) // Синий
+                new Color(0.2f, 0.4f, 0.8f), // Синий
+                2 // Индекс темы для спрайтов
             )
         }
     };
 
-    /// <summary>
-    /// Инициализация при старте сцены
-    /// </summary>
     private void Start()
     {
         CalculateGridLayout();
         ShowMainMenu();
-
-        // Загрузка сохраненных настроек
         LoadSettings();
 
-        // Настройка обработчиков событий
         masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
@@ -151,23 +155,39 @@ public class MenuController : MonoBehaviour
     /// <param name="topicName">Название выбранной темы</param>
     public void OnTopicSelected(string topicName)
     {
-        // Проверяем, существует ли тема в словаре
         if (!gameTopics.ContainsKey(topicName)) return;
 
-        // Устанавливаем текущую выбранную тему
         currentSelectedTopic = topicName;
-
-        // Получаем данные выбранной темы
         TopicData selectedTopic = gameTopics[topicName];
-
-        // Устанавливаем заголовок темы
         topicTitleText.text = topicName;
-
-        // Устанавливаем описание темы (из поля Description)
         levelDescriptionText.text = selectedTopic.Description;
 
-        // Запускаем переход к выбору уровня
+        // Обновляем фоновое изображение в соответствии с темой
+        UpdateBackgroundForTopic(selectedTopic.ThemeSpriteIndex);
+
         StartCoroutine(TransitionToLevelSelection());
+    }
+
+    private void UpdateBackgroundForTopic(int themeIndex)
+    {
+        if (backgroundImage == null) return;
+
+        Sprite[] themeSprites = GetSpritesForTheme(themeIndex);
+        if (themeSprites != null && themeSprites.Length > 0)
+        {
+            backgroundImage.sprite = themeSprites[0]; // Первый спрайт - общий для темы
+        }
+    }
+
+    private Sprite[] GetSpritesForTheme(int themeIndex)
+    {
+        switch (themeIndex)
+        {
+            case 0: return fireThemeSprites;
+            case 1: return rocketThemeSprites;
+            case 2: return tutorialThemeSprites;
+            default: return null;
+        }
     }
 
     /// <summary>
@@ -197,21 +217,16 @@ public class MenuController : MonoBehaviour
     /// </summary>
     private void InitializeLevelSelection()
     {
-        // Очистка старых кнопок уровней
         foreach (Transform child in levelButtonsContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Настройка параметров сетки
         ConfigureGridLayout();
-
-        // Создание кнопок для каждого уровня
         CreateLevelButtons();
-
-        // Принудительное обновление layout
         LayoutRebuilder.ForceRebuildLayoutImmediate(levelButtonsContainer.GetComponent<RectTransform>());
     }
+
 
     /// <summary>
     /// Настраивает параметры GridLayout в зависимости от ориентации экрана
@@ -245,26 +260,25 @@ public class MenuController : MonoBehaviour
     /// </summary>
     private void CreateLevelButtons()
     {
-        // Получаем данные текущей выбранной темы
         TopicData currentTopic = gameTopics[currentSelectedTopic];
-
-        // Получаем список сцен уровней для этой темы
         var levels = currentTopic.LevelScenes;
+        Sprite[] themeSprites = GetSpritesForTheme(currentTopic.ThemeSpriteIndex);
 
         for (int i = 0; i < levels.Count; i++)
         {
-            // Создаем кнопку уровня
             Button levelButton = Instantiate(levelButtonPrefab, levelButtonsContainer);
-
-            // Устанавливаем текст кнопки с названием темы и номером уровня
             levelButton.GetComponentInChildren<Text>().text = $"{currentSelectedTopic} - Уровень {i + 1}";
 
-            // Настройка цветов кнопки (используем цвет из данных темы)
+            // Установка иконки уровня если есть спрайты
+            if (themeSprites != null && i + 1 < themeSprites.Length)
+            {
+                levelButton.GetComponent<Image>().sprite = themeSprites[i + 1];
+            }
+
             var colors = levelButton.colors;
-            colors.normalColor = currentTopic.ThemeColor; // Используем цвет из TopicData
+            colors.normalColor = currentTopic.ThemeColor;
             levelButton.colors = colors;
 
-            // Сохраняем индекс уровня в замыкании
             int levelIndex = i;
             levelButton.onClick.AddListener(() => OnLevelSelected(levelIndex));
         }
@@ -294,6 +308,7 @@ public class MenuController : MonoBehaviour
     /// <param name="levelIndex">Индекс выбранного уровня</param>
     private void OnLevelSelected(int levelIndex)
     {
+        currentSelectedLevelIndex = levelIndex;
         StartCoroutine(LoadLevelAsync(gameTopics[currentSelectedTopic].LevelScenes[levelIndex]));
     }
 
@@ -303,6 +318,9 @@ public class MenuController : MonoBehaviour
     /// <param name="sceneName">Имя сцены для загрузки</param>
     private IEnumerator LoadLevelAsync(string sceneName)
     {
+        // Установка спрайта загрузки в соответствии с темой и уровнем
+        UpdateLoadingScreenImage();
+
         loadingPanel.SetActive(true);
         levelSelectPanel.SetActive(false);
 
@@ -317,6 +335,25 @@ public class MenuController : MonoBehaviour
         while (!asyncLoad.isDone)
         {
             yield return null;
+        }
+    }
+
+    private void UpdateLoadingScreenImage()
+    {
+        if (loadingScreenImage == null) return;
+
+        TopicData currentTopic = gameTopics[currentSelectedTopic];
+        Sprite[] themeSprites = GetSpritesForTheme(currentTopic.ThemeSpriteIndex);
+
+        if (themeSprites != null && currentSelectedLevelIndex >= 0 &&
+            currentSelectedLevelIndex < themeSprites.Length - 1)
+        {
+            // Используем спрайт уровня (индекс + 1, так как 0 - общий для темы)
+            loadingScreenImage.sprite = themeSprites[currentSelectedLevelIndex + 1];
+        }
+        else
+        {
+            loadingScreenImage.sprite = defaultLoadingSprite;
         }
     }
 
@@ -353,21 +390,31 @@ public class MenuController : MonoBehaviour
     /// </summary>
     /// <param name="volume">Уровень громкости (0-1)</param>
     public void SetMasterVolume(float volume)
+{
+    // Если метод вызван из слайдера, используем его значение
+    // Иначе используем переданный volume
+    float volumeValue = (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy) 
+        ? masterVolumeSlider.value 
+        : volume;
+
+    // Проверка на 0 перед вычислением логарифма
+    if (volumeValue > 0)
     {
-        float volumeValue = masterVolumeSlider.value;
-
-        // Проверка на 0 перед вычислением логарифма
-        if (volumeValue > 0)
-        {
-            audioMixer.SetFloat("MasterVolume", Mathf.Log10(volumeValue) * 20);
-        }
-        else
-        {
-            audioMixer.SetFloat("MasterVolume", -80); // Установка минимального значения громкости
-        }
-
-        PlayerPrefs.SetFloat("MasterVolume", volumeValue);
+        audioMixer.SetFloat("MasterVolume", Mathf.Log10(volumeValue) * 20);
     }
+    else
+    {
+        audioMixer.SetFloat("MasterVolume", -80); // Установка минимального значения громкости
+    }
+
+    PlayerPrefs.SetFloat("MasterVolume", volumeValue);
+    
+    // Обновляем слайдер, если он активен
+    if (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy)
+    {
+        masterVolumeSlider.value = volumeValue;
+    }
+}
 
     /// <summary>
     /// Устанавливает полноэкранный режим
@@ -415,12 +462,15 @@ public class MenuController : MonoBehaviour
         public List<string> LevelScenes { get; }
         public string Description { get; }
         public Color ThemeColor { get; }
+        public int ThemeSpriteIndex { get; }
 
-        public TopicData(List<string> levelScenes, string description, Color themeColor)
+        public TopicData(List<string> levelScenes, string description,
+                       Color themeColor, int themeSpriteIndex)
         {
             LevelScenes = levelScenes;
             Description = description;
             ThemeColor = themeColor;
+            ThemeSpriteIndex = themeSpriteIndex;
         }
     }
 

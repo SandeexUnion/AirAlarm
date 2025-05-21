@@ -28,6 +28,7 @@ public class Drag : MonoBehaviour
     private GameObject objectHeld;
     private bool isObjectHeld;
     private bool tryPickupObject;
+    private bool IsDoorLocked;
 
     [System.Serializable]
     public class InteractionTags
@@ -35,6 +36,7 @@ public class Drag : MonoBehaviour
         public string interactTag = "Interact";
         public string itemTag = "InteractItem";
         public string doorTag = "Door";
+        public string lockedDoorTag = "LockedDoor";
     }
 
     private void Start()
@@ -124,7 +126,7 @@ public class Drag : MonoBehaviour
         }
 
         // Для дверей - особые условия
-        if (hit.collider.CompareTag(tags.doorTag))
+        if (hit.collider.CompareTag(tags.doorTag) || hit.collider.CompareTag(tags.lockedDoorTag))
         {
             HandleDoorInteraction(hit);
         }
@@ -151,6 +153,29 @@ public class Drag : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(hit.point, playerCam.transform.position);
         if (distanceToPlayer > 1.5f) return;
+
+        // Проверяем, есть ли у объекта тег "LockedDoor" (или другой признак блокировки)
+        if (hit.collider.CompareTag("LockedDoor"))
+        {
+
+            crosshairGUI.isLookingAtLockedDoor = true;
+            // Проверяем наличие ключа в инвентаре
+            // Предполагаем, что ключ имеет имя "Key" или другое уникальное имя
+            bool hasKey = inventorySystem.HasItem(GameObject.Find("Key"));
+            Debug.Log(hasKey);
+           // Или inventorySystem.inventoryItems.Contains("Key")
+
+            if (!hasKey)
+            {
+                Debug.Log("Дверь заблокирована, нужен ключ!");
+                return;
+            }
+            else
+            {
+                Debug.Log("Дверь открыта ключом!");
+                hit.collider.tag = tags.doorTag; // Меняем тег на обычную дверь
+            }
+        }
 
         objectHeld = hit.collider.gameObject;
         currentInteraction = new DoorInteraction();

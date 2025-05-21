@@ -9,10 +9,18 @@ public class Moving : MonoBehaviour
 {
     [Header("Параметры движения")]
     [SerializeField] private float groundDistance = 2f;
-    [SerializeField] private float walkingSpeed = 7.5f;
+    [SerializeField] public float walkingSpeed = 7.5f;
     [SerializeField] public float gravity = 20.0f;
     [SerializeField] private float lookSpeed = 2.0f;
     [SerializeField] private float lookXLimit = 45.0f;
+
+    [Header("Параметры приседания")]
+    [SerializeField] public float crouchSpeed = 2f;
+    [SerializeField] public float crouchHeight = 0.5f;
+    [SerializeField] public float standHeight = 1.0f;
+    
+
+
 
     [Header("Ссылки на компоненты")]
     [SerializeField] private GameObject playerCamera;
@@ -28,13 +36,16 @@ public class Moving : MonoBehaviour
     [Tooltip("Двигается ли персонаж в данный момент")]
     [HideInInspector] public bool isMoving;
 
+    [Tooltip("Сидит ли персонаж в данный момент")]
+    [HideInInspector] public bool isCrouching;
+
     [Tooltip("Может ли персонаж двигаться")]
     [HideInInspector] public bool canMove = true;
 
     [Tooltip("Проигрываются ли звуки шагов")]
     [HideInInspector] public bool isPlayingSteps = false;
 
-    private CharacterController characterController;
+    public CharacterController characterController;
     private MovementState currentState;
     private float rotationX = 0;
     private Vector3 _moveDirection;
@@ -68,6 +79,7 @@ public class Moving : MonoBehaviour
         UpdateMovement();
         HandleCameraRotation();
         HandlePauseInput();
+        CheckCrouchObstruction();
     }
 
     /// <summary>
@@ -105,6 +117,17 @@ public class Moving : MonoBehaviour
     {
         currentState?.Update();
         characterController.Move(_moveDirection * walkingSpeed * Time.deltaTime);
+    }
+
+    private void CheckCrouchObstruction()
+    {
+        if (!isCrouching && Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            if (Physics.Raycast(transform.position, Vector3.up, standHeight - crouchHeight + 0.1f))
+            {
+                isCrouching = true;
+            }
+        }
     }
 
     /// <summary>

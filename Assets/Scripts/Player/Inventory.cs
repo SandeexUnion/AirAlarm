@@ -98,9 +98,11 @@ public class Inventory : MonoBehaviour
     /// </summary>
     public bool HasItem(GameObject item)
     {
-        if (item == null) return false;
+        //if (item == null) return false;
+        
 
         bool hasItem = inventoryItems.Contains(item.name);
+        Debug.Log("s" + hasItem == null);
         Debug.Log(hasItem ?
             $"Предмет '{item.name}' найден в инвентаре" :
             $"Предмет '{item.name}' отсутствует в инвентаре");

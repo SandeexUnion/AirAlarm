@@ -10,6 +10,8 @@ public class CrosshairGUI : MonoBehaviour
     [SerializeField] private Texture2D defaultCrosshair;
     [Tooltip("Текстура прицела при наведении на интерактивный объект")]
     [SerializeField] private Texture2D interactCrosshair;
+    [Tooltip("Текстура прицела при наведении на закрытую дверь")]
+    [SerializeField] private Texture2D lockedDoorCrosshair;
 
     [Header("Settings")]
     [Tooltip("Максимальная дистанция для взаимодействия")]
@@ -20,10 +22,13 @@ public class CrosshairGUI : MonoBehaviour
     [Header("Interaction Tags")]
     [Tooltip("Теги интерактивных объектов")]
     [SerializeField] private string[] interactableTags = { "Interact", "InteractItem", "Door" };
+    [Tooltip("Тег закрытой двери")]
+    [SerializeField] private string lockedDoorTag = "LockedDoor";
 
     private Rect crosshairRect;
-    public bool isLookingAtInteractable;
     private Camera mainCamera;
+    public bool isLookingAtInteractable;
+    public bool isLookingAtLockedDoor;
 
     private void Awake()
     {
@@ -53,8 +58,18 @@ public class CrosshairGUI : MonoBehaviour
         }
 
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        isLookingAtInteractable = Physics.Raycast(ray, out RaycastHit hit, raycastDistance) &&
-                                 IsInteractableTag(hit.collider.tag);
+        if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance))
+        {
+            // Сначала проверяем на закрытую дверь
+            isLookingAtLockedDoor = hit.collider.CompareTag(lockedDoorTag);
+            // Затем проверяем другие интерактивные объекты
+            isLookingAtInteractable = !isLookingAtLockedDoor && IsInteractableTag(hit.collider.tag);
+        }
+        else
+        {
+            isLookingAtInteractable = false;
+            isLookingAtLockedDoor = false;
+        }
     }
 
     /// <summary>
@@ -75,7 +90,9 @@ public class CrosshairGUI : MonoBehaviour
     /// </summary>
     private void DrawCrosshair()
     {
-        Texture2D currentTexture = isLookingAtInteractable ? interactCrosshair : defaultCrosshair;
+        // Приоритет отдается курсору закрытой двери
+        Texture2D currentTexture = isLookingAtLockedDoor ? lockedDoorCrosshair :
+                                (isLookingAtInteractable ? interactCrosshair : defaultCrosshair);
 
         if (currentTexture != null)
         {
