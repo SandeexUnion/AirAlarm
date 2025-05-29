@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// Класс для вывода сообщения при входе игрока в триггер
@@ -14,6 +15,7 @@ public class TriggerMessage : MonoBehaviour
     private CommentController commentController;
     
     private NotificationMoveToCentr notificationMoveToCentrController;
+    [SerializeField] private UnityEvent onMessageHidden;
 
     private void Start()
     {
@@ -41,22 +43,18 @@ public class TriggerMessage : MonoBehaviour
     /// </summary>
     void OnTriggerEnter(Collider other)
     {
-        // Проверяем, что вошел игрок
         if (other.CompareTag("Player"))
         {
-            // Показываем сообщение и уведомление
-            if (commentController != null)
-            {
-                commentController.ShowComment(message);
-            }
+            // Передаем сам триггер как GameObject
+            commentController.ShowComment(message, gameObject);
 
             if (notificationMoveToCentrController != null)
             {
                 notificationMoveToCentrController.ShowNotification();
             }
 
-            // Уничтожаем объект, чтобы сообщение показывалось только один раз
-            Destroy(gameObject);
+            
+             
         }
     }
 

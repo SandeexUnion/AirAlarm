@@ -1,48 +1,51 @@
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Контроллер движения персонажа, управляющий передвижением, камерой и состояниями
+/// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class Moving : MonoBehaviour
 {
-    [Header("Параметры движения")]
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
     [SerializeField] private float groundDistance = 2f;
     [SerializeField] public float walkingSpeed = 7.5f;
     [SerializeField] public float gravity = 20.0f;
     [SerializeField] private float lookSpeed = 2.0f;
     [SerializeField] private float lookXLimit = 45.0f;
 
-    [Header("Параметры приседания")]
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
     [SerializeField] public float crouchSpeed = 2f;
     [SerializeField] public float crouchHeight = 0.5f;
     [SerializeField] public float standHeight = 1.0f;
-    
 
 
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ+пїЅпїЅпїЅпїЅ)")]
+    [HideInInspector] public bool isAllInputDisabled = false;
 
-    [Header("Ссылки на компоненты")]
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
     [SerializeField] private GameObject playerCamera;
     [SerializeField] private Rigidbody rb;
     [SerializeField] public AudioSource steps;
     [SerializeField] private PlayableDirector playableDirector;
     [SerializeField] private PauseMenu pauseMenu;
 
-    [Header("Состояния движения")]
-    [Tooltip("Находится ли персонаж на земле")]
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ")]
     [HideInInspector] public bool isGrounded;
 
-    [Tooltip("Двигается ли персонаж в данный момент")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ")]
     [HideInInspector] public bool isMoving;
 
-    [Tooltip("Сидит ли персонаж в данный момент")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ")]
     [HideInInspector] public bool isCrouching;
 
-    [Tooltip("Может ли персонаж двигаться")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
     [HideInInspector] public bool canMove = true;
 
-    [Tooltip("Проигрываются ли звуки шагов")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ")]
     [HideInInspector] public bool isPlayingSteps = false;
 
     public CharacterController characterController;
@@ -51,7 +54,7 @@ public class Moving : MonoBehaviour
     private Vector3 _moveDirection;
 
     /// <summary>
-    /// Направление движения персонажа
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     public Vector3 moveDirection
     {
@@ -60,17 +63,22 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Инициализация компонентов
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
         IsCursorLock(true);
         SetState(new GroundedState(this));
+        if (SceneManager.GetActiveScene().buildIndex != 0) // РќРµ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     /// <summary>
-    /// Обновление логики движения каждый кадр
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     /// </summary>
     private void Update()
     {
@@ -83,7 +91,7 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Обработка состояния во время катсцены
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void HandleCutsceneState()
     {
@@ -102,7 +110,7 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Проверка, находится ли персонаж на земле
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void CheckGroundStatus()
     {
@@ -111,12 +119,56 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Обновление движения персонажа
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void UpdateMovement()
     {
-        currentState?.Update();
-        characterController.Move(_moveDirection * walkingSpeed * Time.deltaTime);
+        if (!isAllInputDisabled)
+        {
+            currentState?.Update();
+            characterController.Move(_moveDirection * walkingSpeed * Time.deltaTime);
+        }
+    }
+
+    /// <summary>
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ + пїЅпїЅпїЅпїЅпїЅпїЅ) пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    /// </summary>
+    public void DisableAllInput()
+    {
+        isAllInputDisabled = true;
+        canMove = false;
+        _moveDirection = Vector3.zero; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        characterController.enabled = false; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ CharacterController пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ Rigidbody пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+    }
+
+    /// <summary>
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ + пїЅпїЅпїЅпїЅпїЅпїЅ) пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    /// </summary>
+    public void EnableAllInput()
+    {
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ CharacterController
+        characterController.enabled = true;
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Rigidbody пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+        }
+
+        isAllInputDisabled = false;
+        canMove = true;
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ rotationX пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        rotationX = playerCamera.transform.localEulerAngles.x;
     }
 
     private void CheckCrouchObstruction()
@@ -131,11 +183,11 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Обработка вращения камеры
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void HandleCameraRotation()
     {
-        if (!pauseMenu.isPauseMenuShowing && canMove)
+        if (!pauseMenu.isPauseMenuShowing && canMove && !isAllInputDisabled)
         {
             rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
             rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
@@ -145,7 +197,7 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Обработка ввода для паузы
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void HandlePauseInput()
     {
@@ -159,9 +211,9 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Установка нового состояния движения
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
-    /// <param name="newState">Новое состояние</param>
+    /// <param name="newState">пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ</param>
     public void SetState(MovementState newState)
     {
         currentState?.Exit();
@@ -170,12 +222,19 @@ public class Moving : MonoBehaviour
     }
 
     /// <summary>
-    /// Управление состоянием курсора
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
-    /// <param name="isCursorLock">Заблокировать ли курсор</param>
+    /// <param name="isCursorLock">пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ</param>
     public void IsCursorLock(bool isCursorLock)
     {
+        // РРіРЅРѕСЂРёСЂСѓРµРј Р·Р°РїСЂРѕСЃС‹ Р±Р»РѕРєРёСЂРѕРІРєРё, РµСЃР»Рё UI Р°РєС‚РёРІРµРЅ (РЅР°РїСЂРёРјРµСЂ, РјРµРЅСЋ РїР°СѓР·С‹)
+        if (FindObjectOfType<PauseMenu>()?.isPauseMenuShowing == true)
+            return;
+
         Cursor.lockState = isCursorLock ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !isCursorLock;
+
+        // Р”Р»СЏ РѕС‚Р»Р°РґРєРё
+        Debug.Log($"Cursor lock set to: {Cursor.lockState}, visible: {Cursor.visible}");
     }
 }

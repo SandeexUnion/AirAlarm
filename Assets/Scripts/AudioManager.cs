@@ -29,12 +29,12 @@ public class AudioManager : MonoBehaviour
             audioSource = GetComponent<AudioSource>();
         }
 
-        PlayNextTrack();
+        //PlayNextTrack();
     }
 
     private void Update()
     {
-        HandleAudioPlayback();
+        //HandleAudioPlayback();
     }
 
     /// <summary>

@@ -112,6 +112,10 @@ public class CrosshairGUI : MonoBehaviour
     /// </summary>
     private void UpdateCursorVisibility()
     {
+        // Ќе управл€ем курсором, если игра на паузе или в меню
+        if (Time.timeScale == 0 || FindObjectOfType<MenuController>() != null)
+            return;
+
         Cursor.visible = showSystemCursor;
         Cursor.lockState = showSystemCursor ? CursorLockMode.None : CursorLockMode.Locked;
     }

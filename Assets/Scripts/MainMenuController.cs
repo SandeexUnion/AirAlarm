@@ -93,6 +93,20 @@ public class MenuController : MonoBehaviour
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
 
+    private void Awake()
+    {
+        // √арантируем правильное состо€ние курсора при загрузке меню
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        CalculateGridLayout();
+        ResetMenuState(); // »спользуем новый метод вместо ShowMainMenu()
+        LoadSettings();
+
+        masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
+        fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
+    }
+
     /// <summary>
     /// ќбновление каждый кадр (временно не используетс€)
     /// </summary>
@@ -320,6 +334,8 @@ public class MenuController : MonoBehaviour
     {
         // ”становка спрайта загрузки в соответствии с темой и уровнем
         UpdateLoadingScreenImage();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         loadingPanel.SetActive(true);
         levelSelectPanel.SetActive(false);
@@ -448,6 +464,20 @@ public class MenuController : MonoBehaviour
        topicSelectPanel.SetActive(false);
        creditsPanel.SetActive(true);
     
+    }
+
+    public void ResetMenuState()
+    {
+        mainMenuPanel.SetActive(true);
+        topicSelectPanel.SetActive(false);
+        levelSelectPanel.SetActive(false);
+        loadingPanel.SetActive(false);
+        settingsPanel.SetActive(false);
+        creditsPanel.SetActive(false);
+
+        // –азблокируем курсор
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     #endregion

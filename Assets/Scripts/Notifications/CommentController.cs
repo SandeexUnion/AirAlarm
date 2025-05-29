@@ -1,5 +1,8 @@
 using System.Collections;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -13,6 +16,7 @@ public class CommentController : MonoBehaviour
     [Tooltip("UI Text компонент для отображения комментария")]
     [SerializeField]
     private Text commentText;
+    private GameObject nextCommentGameObject;
 
     [Tooltip("Длительность отображения комментария (если не скрыт вручную)")]
     [SerializeField]
@@ -23,12 +27,17 @@ public class CommentController : MonoBehaviour
     private PauseController pauseController;
 
     [Header("State Tracking")]
-    private bool isDisplaying = false;
+    public bool isDisplaying = false;
+
+    [SerializeField] int CurrentSceneNum = 0;
+    [SerializeField] GameObject currentTrigger;
+
+    
 
     /// <summary>
     /// Флаг, указывающий отображается ли в данный момент комментарий
     /// </summary>
-    public bool IsDisplaying => isDisplaying;
+
 
     /// <summary>
     /// Инициализация компонента при старте
@@ -37,6 +46,7 @@ public class CommentController : MonoBehaviour
     {
         InitializeDependencies();
         SetupInitialState();
+        CurrentSceneNum = SceneManager.GetActiveScene().buildIndex;
     }
 
     /// <summary>
@@ -79,11 +89,13 @@ public class CommentController : MonoBehaviour
     /// Публичный метод для отображения комментария
     /// </summary>
     /// <param name="comment">Текст комментария для отображения</param>
-    public void ShowComment(string comment)
+    public void ShowComment(string comment, GameObject trigger = null)
     {
         if (!isDisplaying)
         {
+            currentTrigger = trigger;
             DisplayComment(comment);
+            // Убрали управление курсором отсюда
         }
     }
 
@@ -106,10 +118,32 @@ public class CommentController : MonoBehaviour
     /// </summary>
     private void HideComment()
     {
-        pauseController.Resume();
+        pauseController?.Resume();
         isDisplaying = false;
-        notificationMoveToCentrController.HideNotification();
+        notificationMoveToCentrController?.HideNotification();
         commentText.gameObject.SetActive(false);
+
+        // Убрали управление курсором отсюда
+
+        if (nextCommentGameObject != null)
+        {
+            nextCommentGameObject.SetActive(true);
+        }
+
+        if (currentTrigger != null)
+        {
+            if (currentTrigger.CompareTag("Completed"))
+            {
+                SceneManager.LoadScene(0);
+                
+            }
+            else if (currentTrigger.CompareTag("Failure"))
+            {
+                SceneManager.LoadScene(CurrentSceneNum);
+                
+            }
+            Destroy(currentTrigger);
+        }
     }
 
     /// <summary>

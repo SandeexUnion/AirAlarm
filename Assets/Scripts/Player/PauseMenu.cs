@@ -40,16 +40,13 @@ public class PauseMenu : MonoBehaviour
     /// </summary>
     public void ShowPauseMenu()
     {
-        // Устанавливаем флаг видимости
         isPauseMenuShowing = true;
-
-        // Активируем панель меню
         menuPanel.SetActive(true);
 
-        // Разблокируем курсор
-        moving.IsCursorLock(false);
+        // Разблокируем курсор при паузе
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
-        // Ставим игру на паузу
         pauseController.Pause();
     }
 
@@ -58,16 +55,13 @@ public class PauseMenu : MonoBehaviour
     /// </summary>
     public void HidePauseMenu()
     {
-        // Сбрасываем флаг видимости
         isPauseMenuShowing = false;
-
-        // Деактивируем панель меню
         menuPanel.SetActive(false);
 
-        // Блокируем курсор
-        moving.IsCursorLock(true);
+        // Блокируем курсор при возврате в игру
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
-        // Возобновляем игру
         pauseController.Resume();
     }
 

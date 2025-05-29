@@ -44,13 +44,11 @@ public class PauseController : MonoBehaviour
     {
         if (!_isPaused) return;
 
-        // Восстанавливаем нормальное игровое время
         Time.timeScale = 1f;
 
-        // Восстанавливаем оригинальные параметры звука
+        // Восстанавливаем звук
         for (int i = 0; i < _audioSources.Length; i++)
         {
-            // Проверка на случай уничтоженных объектов
             if (_audioSources[i] != null)
             {
                 _audioSources[i].pitch = _originalPitches[i];

@@ -8,6 +8,8 @@ TagManager:
   - Interact
   - InteractItem
   - LockedDoor
+  - Completed
+  - Failure
   layers:
   - Default
   - TransparentFX

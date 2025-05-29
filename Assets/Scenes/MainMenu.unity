@@ -1028,6 +1028,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5047214148515976226, guid: eea1cde88b476194b88abeb3cce8ded7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6072085203567874711, guid: eea1cde88b476194b88abeb3cce8ded7, type: 3}
       propertyPath: m_Name
       value: MainMenuManager
@@ -1066,6 +1070,10 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: 4a0f44ff049aa9a49ae19e2cfb09a7ac, type: 3}
     - target: {fileID: 7312029780281086798, guid: eea1cde88b476194b88abeb3cce8ded7, type: 3}
       propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8585438894220668853, guid: eea1cde88b476194b88abeb3cce8ded7, type: 3}
+      propertyPath: m_Value
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8629391540575954419, guid: eea1cde88b476194b88abeb3cce8ded7, type: 3}

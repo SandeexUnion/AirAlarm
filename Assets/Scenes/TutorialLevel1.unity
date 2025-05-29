@@ -349,7 +349,7 @@ PrefabInstance:
       objectReference: {fileID: 746413041}
     - target: {fileID: 5767291195520651901, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: lookXLimit
-      value: 120
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 5767291195520651901, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: standHeight
@@ -357,7 +357,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5767291195520651901, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: crouchHeight
-      value: 0.4
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 5767291195520651901, guid: c022d849bc98fd0478ec23378388609d, type: 3}
       propertyPath: walkingSpeed
@@ -882,6 +882,10 @@ PrefabInstance:
       propertyPath: commentController
       value: 
       objectReference: {fileID: 39954346}
+    - target: {fileID: 5154492345284779513, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.59
+      objectReference: {fileID: 0}
     - target: {fileID: 5377047628058485892, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
       propertyPath: commentController
       value: 
@@ -945,6 +949,14 @@ PrefabInstance:
     - target: {fileID: 6328421313133061021, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
       propertyPath: m_LocalPosition.z
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042888447554947077, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
+      propertyPath: m_Size.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042888447554947077, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
+      propertyPath: m_Center.y
+      value: -0.19
       objectReference: {fileID: 0}
     - target: {fileID: 9146042999771360480, guid: df30355e61feb604cb63e5e45eeac82c, type: 3}
       propertyPath: m_LocalPosition.x
