@@ -2,27 +2,37 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Контроллер анимации перемещения уведомления в центр экрана и обратно
+/// с автоматической паузой игры при показе уведомления.
+/// </summary>
 public class NotificationMoveToCentr : MonoBehaviour
 {
     [Header("UI References")]
     [Tooltip("RectTransform кнопки/уведомления для перемещения")]
-    public RectTransform buttonRT;
+    public RectTransform buttonRT;                          // Трансформ уведомления для анимации
     [Tooltip("Canvas, к которому принадлежит уведомление (для расчета границ)")]
-    public Canvas canvas;
+    public Canvas canvas;                                   // Родительский канвас
 
     [Header("Animation Settings")]
     [SerializeField, Tooltip("Длительность анимации в секундах")]
-    private float animationDuration = 0.5f;
+    private float animationDuration = 0.5f;                 // Длительность анимации перемещения
 
-    private Vector2 startAnchoredPos;
-    private Vector2 centerAnchoredPos;
-    private Vector2 hiddenAnchoredPos;
+    private Vector2 startAnchoredPos;                       // Начальная позиция уведомления
+    private Vector2 centerAnchoredPos;                      // Центральная позиция на экране
+    private Vector2 hiddenAnchoredPos;                      // Позиция за пределами экрана
 
-    private PauseController pauseController;
-    private Coroutine currentAnimation;
+    private PauseController pauseController;                // Контроллер паузы игры
+    private Coroutine currentAnimation;                     // Текущая выполняемая анимация
 
+    /// <summary>
+    /// Статический экземпляр для реализации синглтона
+    /// </summary>
     public static NotificationMoveToCentr Instance { get; private set; }
 
+    /// <summary>
+    /// Инициализация синглтона при загрузке объекта
+    /// </summary>
     private void Awake()
     {
         if (Instance == null)
@@ -36,6 +46,9 @@ public class NotificationMoveToCentr : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Начальная инициализация компонента
+    /// </summary>
     private void Start()
     {
         canvas = buttonRT.parent.GetComponent<Canvas>();
@@ -44,6 +57,9 @@ public class NotificationMoveToCentr : MonoBehaviour
         buttonRT.anchoredPosition = hiddenAnchoredPos; // Сразу скрываем
     }
 
+    /// <summary>
+    /// Вычисляет ключевые позиции для анимации
+    /// </summary>
     private void CalculatePositions()
     {
         startAnchoredPos = buttonRT.anchoredPosition;
@@ -55,6 +71,11 @@ public class NotificationMoveToCentr : MonoBehaviour
         hiddenAnchoredPos = new Vector2(-(screenWidth + notificationWidth), buttonRT.anchoredPosition.y);
     }
 
+    #region Управление уведомлением
+
+    /// <summary>
+    /// Показывает уведомление с анимацией перемещения в центр
+    /// </summary>
     public void ShowNotification()
     {
         if (buttonRT == null)
@@ -73,6 +94,9 @@ public class NotificationMoveToCentr : MonoBehaviour
         currentAnimation = StartCoroutine(MoveAnimation(hiddenAnchoredPos, centerAnchoredPos));
     }
 
+    /// <summary>
+    /// Скрывает уведомление с анимацией перемещения за экран
+    /// </summary>
     public void HideNotification()
     {
         if (buttonRT == null)
@@ -90,6 +114,15 @@ public class NotificationMoveToCentr : MonoBehaviour
         currentAnimation = StartCoroutine(MoveAnimation(buttonRT.anchoredPosition, hiddenAnchoredPos));
     }
 
+    #endregion
+
+    #region Анимация перемещения
+
+    /// <summary>
+    /// Корутина для плавного перемещения уведомления между позициями
+    /// </summary>
+    /// <param name="from">Начальная позиция</param>
+    /// <param name="to">Конечная позиция</param>
     private IEnumerator MoveAnimation(Vector2 from, Vector2 to)
     {
         float elapsedTime = 0f;
@@ -111,4 +144,6 @@ public class NotificationMoveToCentr : MonoBehaviour
             pauseController?.Pause();
         }
     }
+
+    #endregion
 }

@@ -112,7 +112,7 @@ public class MenuController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        // Можно добавить логику обновления при необходимости
+        
     }
 
     #region Основная навигация по меню
@@ -181,7 +181,9 @@ public class MenuController : MonoBehaviour
 
         StartCoroutine(TransitionToLevelSelection());
     }
-
+    /// <summary>
+    /// Обновляем спрайт для темы
+    /// </summary>
     private void UpdateBackgroundForTopic(int themeIndex)
     {
         if (backgroundImage == null) return;
@@ -189,7 +191,7 @@ public class MenuController : MonoBehaviour
         Sprite[] themeSprites = GetSpritesForTheme(themeIndex);
         if (themeSprites != null && themeSprites.Length > 0)
         {
-            backgroundImage.sprite = themeSprites[0]; // Первый спрайт - общий для темы
+            backgroundImage.sprite = themeSprites[0]; // Первый спрайт общий для темы
         }
     }
 
@@ -354,6 +356,9 @@ public class MenuController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Обновление спрайта загрузки
+    /// </summary>
     private void UpdateLoadingScreenImage()
     {
         if (loadingScreenImage == null) return;
@@ -407,30 +412,30 @@ public class MenuController : MonoBehaviour
     /// <param name="volume">Уровень громкости (0-1)</param>
     public void SetMasterVolume(float volume)
 {
-    // Если метод вызван из слайдера, используем его значение
-    // Иначе используем переданный volume
-    float volumeValue = (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy) 
-        ? masterVolumeSlider.value 
-        : volume;
+        // Если метод вызван из слайдера, используем его значение
+        // Иначе используем переданный volume
+        float volumeValue = (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy) 
+            ? masterVolumeSlider.value 
+            : volume;
 
-    // Проверка на 0 перед вычислением логарифма
-    if (volumeValue > 0)
-    {
-        audioMixer.SetFloat("MasterVolume", Mathf.Log10(volumeValue) * 20);
-    }
-    else
-    {
-        audioMixer.SetFloat("MasterVolume", -80); // Установка минимального значения громкости
-    }
+        // Проверка на 0 перед вычислением логарифма
+        if (volumeValue > 0)
+        {
+            audioMixer.SetFloat("MasterVolume", Mathf.Log10(volumeValue) * 20);
+        }
+        else
+        {
+            audioMixer.SetFloat("MasterVolume", -80); // Установка минимального значения громкости
+        }
 
-    PlayerPrefs.SetFloat("MasterVolume", volumeValue);
+        PlayerPrefs.SetFloat("MasterVolume", volumeValue);
     
-    // Обновляем слайдер, если он активен
-    if (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy)
-    {
-        masterVolumeSlider.value = volumeValue;
+        // Обновляем слайдер, если он активен
+        if (masterVolumeSlider != null && masterVolumeSlider.gameObject.activeInHierarchy)
+        {
+            masterVolumeSlider.value = volumeValue;
+        }
     }
-}
 
     /// <summary>
     /// Устанавливает полноэкранный режим
@@ -458,6 +463,9 @@ public class MenuController : MonoBehaviour
         SetFullscreen(fullscreen);
     }
 
+    /// <summary>
+    /// Нажатие на кнопку авторов
+    /// </summary>
     public void OnCreditsButtonClicked()
     {
 
@@ -466,6 +474,9 @@ public class MenuController : MonoBehaviour
     
     }
 
+    /// <summary>
+    /// Сброс состояний
+    /// </summary>
     public void ResetMenuState()
     {
         mainMenuPanel.SetActive(true);

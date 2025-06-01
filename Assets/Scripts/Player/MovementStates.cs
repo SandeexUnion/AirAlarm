@@ -43,6 +43,9 @@ public class GroundedState : MovementState
         HandleFootstepSounds();
     }
 
+    /// <summary>
+    /// Ползанье
+    /// </summary>
     private void HandleCrouchInput()
     {
         if (Input.GetKeyDown(KeyCode.LeftControl))
@@ -55,7 +58,9 @@ public class GroundedState : MovementState
             //context.characterController.height = targetScale;
         }
     }
-
+    /// <summary>
+    /// Управление
+    /// </summary>
     private void HandleMovementInput()
     {
         float horizontal = Input.GetAxis("Horizontal");
@@ -64,6 +69,10 @@ public class GroundedState : MovementState
         Vector3 inputDirection = new Vector3(horizontal, 0f, vertical);
         context.moveDirection = context.transform.TransformDirection(inputDirection);
     }
+
+    /// <summary>
+    /// Звуки шагов
+    /// </summary>
 
     private void HandleFootstepSounds()
     {
